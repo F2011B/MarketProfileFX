@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "qcustomplot.h"
 
 class MainWindow : public QMainWindow
 {
@@ -10,6 +11,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+private:
+    QCustomPlot *_customPlot;
 };
 
 #endif // MAINWINDOW_H
