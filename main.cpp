@@ -75,11 +75,16 @@ void showMarketData(const QMap<QDateTime, MarketData> &data)
 class MarketDataProcessor {
 public:
     MarketDataProcessor() : _letterHeight(0), _currentLiteral('A') {}
+    void operator()(const QVector<double> &upper, const QVector<double> &lower) {
+        computeLiteralHeight(upper, lower);
+        initLiteralMatrix(upper, lower);
+        processCurrentDay();
+    }
+private:
     void computeLiteralHeight(const QVector<double> &upper, const QVector<double> &lower);
     void initLiteralMatrix(const QVector<double> &upper, const QVector<double> &lower);
     void processCurrentDay();
-    enum {MAP_RESOLUTION = 5};
-private:
+    enum {MAP_RESOLUTION = 10};
     void findMinMax(double &min, double &max, const QVector<double> &upper,
                     const QVector<double> &lower);
     char getLiteralAtIndex(int index) {
@@ -194,9 +199,9 @@ void displayMarketProfile(const QMap<QDateTime, MarketData> &data)
         QDateTime dateTime = i.key();
         if ((currentDate != dateTime.date()) && !upper.isEmpty()) {
             //if the day has changed, process current day
-            processor.computeLiteralHeight(upper, lower);
-            processor.initLiteralMatrix(upper, lower);
-            processor.processCurrentDay();
+            processor(upper, lower);
+            upper.clear();
+            lower.clear();
         }
         MarketData md = i.value();
         upper.push_back(md.high);
@@ -204,9 +209,7 @@ void displayMarketProfile(const QMap<QDateTime, MarketData> &data)
         currentDate = dateTime.date();
     }
     if (!upper.isEmpty()) {
-        processor.computeLiteralHeight(upper, lower);
-        processor.initLiteralMatrix(upper, lower);
-        processor.processCurrentDay();
+        processor(upper, lower);
     }
 }
 
