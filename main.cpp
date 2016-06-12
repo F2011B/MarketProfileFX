@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
+#include <QtMath>
 
 double randomValue(double limit)
 {
@@ -119,21 +120,21 @@ void MarketDataProcessor::processCurrentDay(QVector<double> &upper, QVector<doub
     for (int i = 1; i < upper.length(); ++i) {
         double diff = upper.at(i)-upper.at(0);
         if (0 < diff) {
-            numberOfLiterals = (int)(diff/_letterHeight);
+            numberOfLiterals = qCeil(diff/_letterHeight);
             for (int j = 0; j < numberOfLiterals; ++j) {
                 charBar.push_front(getLiteralAtIndex(i));
             }
-            upper[0] += diff;
+            upper[0] = upper.at(i);
             upper[i] -= diff;
         }
-        diff = lower.at(i)-lower.at(0);
+        diff = lower.at(0)-lower.at(i);
         if (0 < diff) {
-            numberOfLiterals = (int)(diff/_letterHeight);
+            numberOfLiterals = qCeil(diff/_letterHeight);
             for (int j = 0; j < numberOfLiterals; ++j) {
                 charBar.push_back(getLiteralAtIndex(i));
             }
-            lower[0] += diff;
-            lower[i] -= diff;
+            lower[0] = lower.at(i);
+            lower[i] += diff;
         }
     }
     upper.pop_front();
