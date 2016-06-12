@@ -27,6 +27,17 @@ void MarketProfile::initLiteralMatrix(const QVector<double> &upper,
     int rows = qRound((max-min)/_letterHeight);
     int cols = upper.length();
 
+    if (-1 == _yMin) {
+        _yMin = min;
+    } else if (_yMin > min) {
+        _yMin = min;
+    }
+    if (-1 == _yMax) {
+        _yMax = min;
+    } else if (_yMax < max) {
+        _yMax = max;
+    }
+
     _literalMatrix.resize(cols);
     for (int c = 0; c < cols; ++c) {
         _literalMatrix[c].resize(rows);
@@ -64,7 +75,22 @@ void MarketProfile::processCurrentDay()
         return;
     }
 
-    qInfo() << _literalMatrix.front();
+    QVector<char> bar = _literalMatrix.front();
+    qInfo() << bar;
+
+    static bool once = true;
+    if (once) {
+        once = false;
+        _customPlot->yAxis->setRange(_yMin, _yMax);
+        QCPItemText *textLabel = new QCPItemText(_customPlot);
+        _customPlot->addItem(textLabel);
+        textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+        textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+        textLabel->position->setCoords(0, 1); // place position at center/top of axis rect
+        textLabel->setText("Text Item Demo");
+        //textLabel->setFont(QFont(font().family(), 16)); // make font a bit larger
+    }
+
     _literalMatrix.pop_front();
     incrementCurrentLiteral();
     processCurrentDay();

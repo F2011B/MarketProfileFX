@@ -18,7 +18,8 @@ public:
         int volume;
     };
     explicit MarketProfile(QCustomPlot *customPlot) : _letterHeight(0),
-        _currentLiteral('A'), _customPlot(customPlot) {}
+        _currentLiteral('A'), _customPlot(customPlot),
+        _yMin(-1), _yMax(-1) {}
     void display(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
@@ -58,6 +59,8 @@ private:
     static const char _emptyChar;
     QVector<QVector<char> > _literalMatrix;
     QCustomPlot *_customPlot;
+    double _yMin;
+    double _yMax;
 };
 
 #endif
