@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "qcustomplot.h"
+#include "marketprofile.h"
 
 class MainWindow : public QMainWindow
 {
@@ -11,8 +12,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &timeSeries);
 private:
     QCustomPlot *_customPlot;
+    MarketProfile *_profile;
 };
 
 #endif // MAINWINDOW_H

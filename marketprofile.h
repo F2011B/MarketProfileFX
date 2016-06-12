@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QMap>
 #include <QDateTime>
+#include "qcustomplot.h"
 
 class MarketProfile {
 public:
@@ -16,7 +17,8 @@ public:
         double close;
         int volume;
     };
-    MarketProfile() : _letterHeight(0), _currentLiteral('A') {}
+    explicit MarketProfile(QCustomPlot *customPlot) : _letterHeight(0),
+        _currentLiteral('A'), _customPlot(customPlot) {}
     void display(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
@@ -55,6 +57,7 @@ private:
     char _currentLiteral;
     static const char _emptyChar;
     QVector<QVector<char> > _literalMatrix;
+    QCustomPlot *_customPlot;
 };
 
 #endif

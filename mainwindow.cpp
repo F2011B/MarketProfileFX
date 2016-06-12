@@ -9,9 +9,18 @@ MainWindow::MainWindow(QWidget *parent)
     _customPlot = new QCustomPlot(centralWidget);
     verticalLayout->addWidget(_customPlot);
     setCentralWidget(centralWidget);
+    _profile = new MarketProfile(_customPlot);
 }
 
 MainWindow::~MainWindow()
 {
+}
 
+bool MainWindow::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &timeSeries)
+{
+    if (NULL != _profile) {
+        _profile->display(timeSeries);
+        return true;
+    }
+    return false;
 }

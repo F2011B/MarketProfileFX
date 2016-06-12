@@ -3,9 +3,9 @@
 #include <QDebug>
 
 #include "mainwindow.h"
-#include "marketprofile.h"
 
 //to simplify the data is already generated in slices of 30 minutes
+static
 int generateRandomData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
 {
     QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
@@ -41,6 +41,7 @@ int generateRandomData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo
     return EXIT_SUCCESS;
 }
 
+static
 void showMarketData(const QMap<QDateTime, MarketProfile::Data> &data)
 {
     QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
@@ -55,14 +56,14 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
-    w.show();
 
     QMap<QDateTime, MarketProfile::Data> data;
     if (EXIT_SUCCESS == generateRandomData(data)) {
         //showMarketData(data);
-        MarketProfile profile;
-        profile.display(data);
+        w.loadTimeSeries(data);
     }
+
+    w.show();
 
     return a.exec();
 }
