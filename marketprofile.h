@@ -36,9 +36,12 @@ private:
     void findMinMax(double &min, double &max, const QVector<double> &upper,
                     const QVector<double> &lower);
     char getLiteralAtIndex(int index) {
-        char out = _currentLiteral+index;
-        if (out > 'Z') {
-            out = 'A';
+        char out = _currentLiteral;
+        for (int n = 1; n <= index; ++n) {
+            ++out;
+            if (out > 'Z') {
+                out = 'A';
+            }
         }
         return out;
     }
