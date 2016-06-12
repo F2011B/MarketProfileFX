@@ -76,8 +76,12 @@ class MarketDataProcessor {
 public:
     MarketDataProcessor() : _letterHeight(0), _currentLiteral('A') {}
     void computeLiteralHeight(const QVector<double> &upper, const QVector<double> &lower);
-    void processCurrentDay(QVector<double> &upper, QVector<double> &lower);
+    void initLiteralMatrix(const QVector<double> &upper, const QVector<double> &lower);
+    void processCurrentDay();
+    enum {MAP_RESOLUTION = 5};
 private:
+    void findMinMax(double &min, double &max, const QVector<double> &upper,
+                    const QVector<double> &lower);
     char getLiteralAtIndex(int index) {
         char out = _currentLiteral+index;
         if (out > 'Z') {
@@ -93,7 +97,11 @@ private:
     }
     double _letterHeight;
     char _currentLiteral;
+    static const char _emptyChar;
+    QVector<QVector<char> > _literalMatrix;
 };
+
+const char MarketDataProcessor::_emptyChar = ' ';
 
 //compute the height of the literal as the average daily range divided by 10
 void MarketDataProcessor::computeLiteralHeight(const QVector<double> &upper, const QVector<double> &lower)
@@ -102,46 +110,77 @@ void MarketDataProcessor::computeLiteralHeight(const QVector<double> &upper, con
     for (int i = 0; i < upper.length(); ++i) {
         _letterHeight += (upper.at(i)-lower.at(i));
     }
-    _letterHeight /= (upper.length()*10);
+    _letterHeight /= (upper.length()*MAP_RESOLUTION);
     _currentLiteral = 'A';
 }
 
-void MarketDataProcessor::processCurrentDay(QVector<double> &upper, QVector<double> &lower)
+//generate matrix, each matrix column is a price interval
+void MarketDataProcessor::initLiteralMatrix(const QVector<double> &upper, const QVector<double> &lower)
 {
-    if (upper.isEmpty()) {
+    double min = 0;
+    double max = 0;
+    findMinMax(min, max, upper, lower);
+    int rows = qRound((max-min)/_letterHeight);
+    int cols = upper.length();
+
+    _literalMatrix.resize(cols);
+    for (int c = 0; c < cols; ++c) {
+        _literalMatrix[c].resize(rows);
+        int begin = qRound((lower.at(c)-min)/_letterHeight);
+        int end = qRound((upper.at(c)-min)/_letterHeight);
+        for (int r = 0; r < rows; ++r) {
+            if ((r >= begin) && (r <= end)) {
+                _literalMatrix[c][r] = getLiteralAtIndex(c);
+            } else {
+                _literalMatrix[c][r] = _emptyChar;
+            }
+        }
+    }
+}
+
+void MarketDataProcessor::processCurrentDay()
+{
+    if (_literalMatrix.isEmpty() || _literalMatrix.at(0).isEmpty()) {
         return;
     }
 
-    QVector<char> charBar;
-    int numberOfLiterals = (int)((upper.at(0)-lower.at(0))/_letterHeight);
-    for (int i = 0; i < numberOfLiterals; ++i) {
-        charBar.push_back(_currentLiteral);
-    }
-    for (int i = 1; i < upper.length(); ++i) {
-        double diff = upper.at(i)-upper.at(0);
-        if (0 < diff) {
-            numberOfLiterals = qCeil(diff/_letterHeight);
-            for (int j = 0; j < numberOfLiterals; ++j) {
-                charBar.push_front(getLiteralAtIndex(i));
+    //project all other columns on the first column
+    //and mark the cells that are projected
+    bool projectionSuccessful = false;
+    for (int c = 1; c < _literalMatrix.length(); ++c) {
+        for (int r = 0; r < _literalMatrix.at(0).length(); ++r) {
+            if ((_emptyChar != _literalMatrix.at(c).at(r)) && (_emptyChar == _literalMatrix.at(0).at(r))) {
+                _literalMatrix[0][r] = _literalMatrix[c][r];
+                _literalMatrix[c][r] = _emptyChar;
+                projectionSuccessful = true;
             }
-            upper[0] = upper.at(i);
-            upper[i] -= diff;
-        }
-        diff = lower.at(0)-lower.at(i);
-        if (0 < diff) {
-            numberOfLiterals = qCeil(diff/_letterHeight);
-            for (int j = 0; j < numberOfLiterals; ++j) {
-                charBar.push_back(getLiteralAtIndex(i));
-            }
-            lower[0] = lower.at(i);
-            lower[i] += diff;
         }
     }
-    upper.pop_front();
-    lower.pop_front();
+    if (!projectionSuccessful) {
+        return;
+    }
+
+    qInfo() << _literalMatrix.front();
+    _literalMatrix.pop_front();
     incrementCurrentLiteral();
-    qInfo() << charBar;
-    processCurrentDay(upper, lower);
+    processCurrentDay();
+}
+
+void MarketDataProcessor::findMinMax(double &min, double &max, const QVector<double> &upper,
+                const QVector<double> &lower)
+{
+    min = lower.at(0);
+    for (int i = 1; i < lower.length(); ++i) {
+        if (min > lower.at(i)) {
+            min = lower.at(i);
+        }
+    }
+    max = upper.at(0);
+    for (int i = 1; i < upper.length(); ++i) {
+        if (max < upper.at(i)) {
+            max = upper.at(i);
+        }
+    }
 }
 
 void displayMarketProfile(const QMap<QDateTime, MarketData> &data)
@@ -156,7 +195,8 @@ void displayMarketProfile(const QMap<QDateTime, MarketData> &data)
         if ((currentDate != dateTime.date()) && !upper.isEmpty()) {
             //if the day has changed, process current day
             processor.computeLiteralHeight(upper, lower);
-            processor.processCurrentDay(upper, lower);
+            processor.initLiteralMatrix(upper, lower);
+            processor.processCurrentDay();
         }
         MarketData md = i.value();
         upper.push_back(md.high);
@@ -165,7 +205,8 @@ void displayMarketProfile(const QMap<QDateTime, MarketData> &data)
     }
     if (!upper.isEmpty()) {
         processor.computeLiteralHeight(upper, lower);
-        processor.processCurrentDay(upper, lower);
+        processor.initLiteralMatrix(upper, lower);
+        processor.processCurrentDay();
     }
 }
 
