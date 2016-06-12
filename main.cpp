@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QtMath>
+#include <iostream>
 
 double randomValue(double limit)
 {
@@ -78,9 +79,11 @@ public:
     void operator()(const QVector<double> &upper, const QVector<double> &lower) {
         computeLiteralHeight(upper, lower);
         initLiteralMatrix(upper, lower);
+        dumpLiteralMatrix();
         processCurrentDay();
     }
 private:
+    void dumpLiteralMatrix();
     void computeLiteralHeight(const QVector<double> &upper, const QVector<double> &lower);
     void initLiteralMatrix(const QVector<double> &upper, const QVector<double> &lower);
     void processCurrentDay();
@@ -132,7 +135,7 @@ void MarketDataProcessor::initLiteralMatrix(const QVector<double> &upper, const 
     for (int c = 0; c < cols; ++c) {
         _literalMatrix[c].resize(rows);
         int begin = qRound((lower.at(c)-min)/_letterHeight);
-        int end = qRound((upper.at(c)-min)/_letterHeight);
+        int end = qRound((upper.at(c)-min)/_letterHeight)-1;
         for (int r = 0; r < rows; ++r) {
             if ((r >= begin) && (r <= end)) {
                 _literalMatrix[c][r] = getLiteralAtIndex(c);
@@ -185,6 +188,16 @@ void MarketDataProcessor::findMinMax(double &min, double &max, const QVector<dou
         if (max < upper.at(i)) {
             max = upper.at(i);
         }
+    }
+}
+
+void MarketDataProcessor::dumpLiteralMatrix()
+{
+    for (int r = _literalMatrix.at(0).length()-1; r >= 0 ; --r) {
+        for (int c = 0; c < _literalMatrix.length(); ++c) {
+            std::cout << _literalMatrix.at(c).at(r) << " ";
+        }
+        std::cout << std::endl;
     }
 }
 
