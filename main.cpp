@@ -6,7 +6,7 @@
 
 //to simplify the data is already generated in slices of 30 minutes
 static
-int generateRandomData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
+int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
 {
     QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
     QFile file(filename);
@@ -58,12 +58,13 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QMap<QDateTime, MarketProfile::Data> data;
-    if (EXIT_SUCCESS == generateRandomData(data)) {
+    if (EXIT_SUCCESS == generateData(data)) {
         //showMarketData(data);
         w.loadTimeSeries(data);
     }
 
-    w.show();
+    //w.show();
 
-    return a.exec();
+    //return a.exec();
+    return 0;
 }
