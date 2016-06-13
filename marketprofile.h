@@ -59,7 +59,7 @@ private:
     QCustomPlot *_customPlot;
     double _yMin;
     double _yMax;
-    QVector<double> _lower;
+    double _lower;
 };
 
 #endif

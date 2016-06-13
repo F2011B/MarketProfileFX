@@ -41,7 +41,7 @@ void MarketProfile::initLiteralMatrix(const QVector<double> &upper,
     } else if (_yMax < max) {
         _yMax = max;
     }
-    _lower = lower;
+    _lower = lower.at(0);
 
     _literalMatrix.resize(cols);
     for (int c = 0; c < cols; ++c) {
@@ -82,6 +82,12 @@ void MarketProfile::processCurrentDay()
 
     QVector<char> bar = _literalMatrix.front();
     qInfo() << bar;
+
+    if (NULL != _customPlot) {
+        _customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                     QCP::iSelectLegend | QCP::iSelectPlottables);
+        _customPlot->yAxis->setRange(_yMin, _yMax);
+    }
 
     _literalMatrix.pop_front();
     incrementCurrentLiteral();

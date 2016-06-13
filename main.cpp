@@ -22,7 +22,7 @@ int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
             continue;
         }
         QList<QByteArray> tok = line.split(',');
-        if (7 != tok.length()) {
+        if (7 > tok.length()) {
             qWarning() << "Invalid line" << line;
             continue;
         }
@@ -63,8 +63,7 @@ int main(int argc, char *argv[])
         w.loadTimeSeries(data);
     }
 
-    //w.show();
+    w.show();
 
-    //return a.exec();
-    return 0;
+    return a.exec();
 }
