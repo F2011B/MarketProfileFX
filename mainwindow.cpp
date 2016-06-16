@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *centralWidget= new QWidget(this);
     QVBoxLayout *verticalLayout= new QVBoxLayout(centralWidget);
     _customPlot = new QCustomPlot(centralWidget);
+    _customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                 QCP::iSelectLegend | QCP::iSelectPlottables);
     verticalLayout->addWidget(_customPlot);
     setCentralWidget(centralWidget);
     _profile = new MarketProfile(_customPlot);

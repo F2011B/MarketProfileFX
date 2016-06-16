@@ -7,7 +7,7 @@ const char MarketProfile::_emptyChar = ' ';
 
 MarketProfile::MarketProfile(QCustomPlot *customPlot) : _letterHeight(0),
         _currentLiteral('A'), _customPlot(customPlot),
-        _yMin(-1), _yMax(-1) {}
+        _yMin(-1), _yMax(-1), _xPos(0) {}
 
 //compute the height of the literal as the average daily range divided by 10
 void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
@@ -77,16 +77,37 @@ void MarketProfile::processCurrentDay()
         }
     }
     if (!projectionSuccessful) {
+        if (NULL != _customPlot) {
+            _customPlot->yAxis->setRange(_yMin, _yMax);
+            int nbChars = 0;
+            for (int n = 0; n < _item.size(); ++n) {
+                QCPItemText *barText = new QCPItemText(_customPlot);
+                _customPlot->addItem(barText);
+                barText->setPositionAlignment(Qt::AlignLeft);
+                barText->position->setCoords(_xPos, _lower+n*4*_letterHeight);
+                QString row = _item.at(n);
+                barText->setText(row);
+                if (nbChars < row.size()) {
+                    nbChars = row.size();
+                }
+            }
+            //new x position
+            _xPos += nbChars*10*_letterHeight;
+        }
+        _item.clear();
         return;
     }
 
     QVector<char> bar = _literalMatrix.front();
-    qInfo() << bar;
+    qDebug() << bar;
 
-    if (NULL != _customPlot) {
-        _customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                     QCP::iSelectLegend | QCP::iSelectPlottables);
-        _customPlot->yAxis->setRange(_yMin, _yMax);
+    if (_item.isEmpty()) {
+        _item.resize(bar.size());
+    }
+    for (int n = 0; n < bar.size(); ++n) {
+        if (_emptyChar != bar.at(n)) {
+            _item[n].append(bar.at(n));
+        }
     }
 
     _literalMatrix.pop_front();

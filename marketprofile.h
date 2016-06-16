@@ -60,6 +60,8 @@ private:
     double _yMin;
     double _yMax;
     double _lower;
+    QVector<QString> _item;
+    double _xPos;
 };
 
 #endif
