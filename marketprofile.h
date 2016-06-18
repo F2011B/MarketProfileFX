@@ -23,7 +23,7 @@ private:
     enum {MAP_RESOLUTION = 10};
     void process(const QVector<double> &upper, const QVector<double> &lower,
                     const QDate &currentDate, bool dump = false) {
-        _tickVectorLabels.push_back(currentDate.toString());
+        _tickVectorLabels.push_back(currentDate.toString("MMM d yyyy"));
         computeLiteralHeight(upper, lower);
         initLiteralMatrix(upper, lower);
         if (dump) {
