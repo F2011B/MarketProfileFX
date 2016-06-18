@@ -6,8 +6,16 @@
 const char MarketProfile::_emptyChar = ' ';
 
 MarketProfile::MarketProfile(QCustomPlot *customPlot, const QFont &currentFont) : _letterHeight(0),
-        _currentLiteral('A'), _customPlot(customPlot),
-        _yMin(-1), _yMax(-1), _xPos(0), _currentFont(currentFont) {}
+  _currentLiteral('A'), _customPlot(customPlot),
+  _yMin(-1), _yMax(-1), _xPos(0), _currentFont(currentFont),
+  _currentYMin(-1)
+{
+    _customPlot->xAxis->setSubTickCount(0);
+    _customPlot->xAxis->setTickLength(0, 4);
+    _customPlot->xAxis->setTickLabelRotation(20);
+    _customPlot->xAxis->setAutoTicks(false);
+    _customPlot->xAxis->setAutoTickLabels(false);
+}
 
 //compute the height of the literal as the average daily range divided by 10
 void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
@@ -37,10 +45,11 @@ void MarketProfile::initLiteralMatrix(const QVector<double> &upper,
         _yMin = min;
     }
     if (-1 == _yMax) {
-        _yMax = min;
+        _yMax = max;
     } else if (_yMax < max) {
         _yMax = max;
     }
+    _currentYMin = min;
 
     _literalMatrix.resize(cols);
     for (int c = 0; c < cols; ++c) {
@@ -130,12 +139,13 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
     QVector<double> upper;
     QVector<double> lower;
     QDate currentDate;
+    _tickVector.clear();
+    _tickVectorLabels.clear();
     for (; i != data.constEnd(); ++i) {
         QDateTime dateTime = i.key();
         if ((currentDate != dateTime.date()) && !upper.isEmpty()) {
             //if the day has changed, process current day
-            qInfo() << currentDate;
-            process(upper, lower);
+            process(upper, lower, currentDate);
             upper.clear();
             lower.clear();
         }
@@ -145,8 +155,7 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
         currentDate = dateTime.date();
     }
     if (!upper.isEmpty()) {
-        qInfo() << currentDate;
-        process(upper, lower);
+        process(upper, lower, currentDate);
     }
 }
 
@@ -155,22 +164,31 @@ void MarketProfile::displayItem()
     if (NULL != _customPlot) {
         _customPlot->yAxis->setRange(_yMin, _yMax);
         qDebug() << "y min" << _yMin << "y max" << _yMax;
+        qDebug() << "current y min" << _currentYMin;
+
         int nbChars = 0;
         for (int n = 0; n < _item.size(); ++n) {
             QCPItemText *barText = new QCPItemText(_customPlot);
             _customPlot->addItem(barText);
             barText->setPositionAlignment(Qt::AlignLeft);
             barText->position->setType(QCPItemPosition::ptPlotCoords);
-            barText->position->setCoords(_xPos, _yMin+n*_letterHeight);
-            barText->setFont(QFont(_currentFont.family(), _letterHeight));
+            barText->position->setCoords(_xPos, _currentYMin+n*_letterHeight);
+            QFont font(_currentFont.family());
+            //font.setPixelSize(pixelSize);
+            font.setLetterSpacing(QFont::PercentageSpacing, 0);
+            barText->setFont(font);
             QString row = _item.at(n);
             barText->setText(row);
             if (nbChars < row.size()) {
                 nbChars = row.size();
             }
         }
+        _tickVector.push_back(_xPos);
+        _customPlot->xAxis->setTickVector(_tickVector);
+        _customPlot->xAxis->setTickVectorLabels(_tickVectorLabels);
         //new x position
-        _xPos += nbChars*10*_letterHeight;
+        _xPos += nbChars*5*_letterHeight;
+        _customPlot->xAxis->setRange(0, _xPos);
     }
     _item.clear();
 }

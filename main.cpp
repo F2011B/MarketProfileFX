@@ -6,7 +6,7 @@
 
 //to simplify the data is already generated in slices of 30 minutes
 static
-int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = 14)
+int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
 {
     QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
     QFile file(filename);
