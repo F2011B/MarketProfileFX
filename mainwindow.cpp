@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
                                  QCP::iSelectLegend | QCP::iSelectPlottables);
     verticalLayout->addWidget(_customPlot);
     setCentralWidget(centralWidget);
-    _profile = new MarketProfile(_customPlot);
+    _profile = new MarketProfile(_customPlot, font());
 }
 
 MainWindow::~MainWindow()

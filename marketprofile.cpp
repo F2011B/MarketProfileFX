@@ -5,9 +5,9 @@
 
 const char MarketProfile::_emptyChar = ' ';
 
-MarketProfile::MarketProfile(QCustomPlot *customPlot) : _letterHeight(0),
+MarketProfile::MarketProfile(QCustomPlot *customPlot, const QFont &currentFont) : _letterHeight(0),
         _currentLiteral('A'), _customPlot(customPlot),
-        _yMin(-1), _yMax(-1), _xPos(0) {}
+        _yMin(-1), _yMax(-1), _xPos(0), _currentFont(currentFont) {}
 
 //compute the height of the literal as the average daily range divided by 10
 void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
@@ -41,7 +41,6 @@ void MarketProfile::initLiteralMatrix(const QVector<double> &upper,
     } else if (_yMax < max) {
         _yMax = max;
     }
-    _lower = lower.at(0);
 
     _literalMatrix.resize(cols);
     for (int c = 0; c < cols; ++c) {
@@ -77,24 +76,7 @@ void MarketProfile::processCurrentDay()
         }
     }
     if (!projectionSuccessful) {
-        if (NULL != _customPlot) {
-            _customPlot->yAxis->setRange(_yMin, _yMax);
-            int nbChars = 0;
-            for (int n = 0; n < _item.size(); ++n) {
-                QCPItemText *barText = new QCPItemText(_customPlot);
-                _customPlot->addItem(barText);
-                barText->setPositionAlignment(Qt::AlignLeft);
-                barText->position->setCoords(_xPos, _lower+n*4*_letterHeight);
-                QString row = _item.at(n);
-                barText->setText(row);
-                if (nbChars < row.size()) {
-                    nbChars = row.size();
-                }
-            }
-            //new x position
-            _xPos += nbChars*10*_letterHeight;
-        }
-        _item.clear();
+        displayItem();
         return;
     }
 
@@ -166,4 +148,29 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
         qInfo() << currentDate;
         process(upper, lower);
     }
+}
+
+void MarketProfile::displayItem()
+{
+    if (NULL != _customPlot) {
+        _customPlot->yAxis->setRange(_yMin, _yMax);
+        qDebug() << "y min" << _yMin << "y max" << _yMax;
+        int nbChars = 0;
+        for (int n = 0; n < _item.size(); ++n) {
+            QCPItemText *barText = new QCPItemText(_customPlot);
+            _customPlot->addItem(barText);
+            barText->setPositionAlignment(Qt::AlignLeft);
+            barText->position->setType(QCPItemPosition::ptPlotCoords);
+            barText->position->setCoords(_xPos, _yMin+n*_letterHeight);
+            barText->setFont(QFont(_currentFont.family(), _letterHeight));
+            QString row = _item.at(n);
+            barText->setText(row);
+            if (nbChars < row.size()) {
+                nbChars = row.size();
+            }
+        }
+        //new x position
+        _xPos += nbChars*10*_letterHeight;
+    }
+    _item.clear();
 }

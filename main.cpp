@@ -6,7 +6,7 @@
 
 //to simplify the data is already generated in slices of 30 minutes
 static
-int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
+int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = 14)
 {
     QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
     QFile file(filename);
@@ -34,7 +34,7 @@ int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
         item.close = tok[5].toDouble();
         item.volume = tok[6].toInt();
         data[dateTime] = item;
-        if ((0 <= maxLineNo) && (maxLineNo < lineNo)) {
+        if ((0 <= maxLineNo) && ((maxLineNo-1) < lineNo)) {
             break;
         }
     }
