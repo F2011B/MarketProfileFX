@@ -304,24 +304,18 @@ bool MarketProfile::updateIndicator(const QString &indicatorName,
     if (!_indicators.contains(indicatorName)) {
         return false;
     }
-    //update indicator
-    QCPItemText *ind = _indicators[indicatorName];
-    bool rc = removeItem(ind);
-    if (!rc) {
-        return false;
-    }
     //search input data in existing tick dates
     QDateTime key = position.firstKey();
     const QDate currentDate = key.date();
     int pos = 0;
-    if (!findTickPosition(pos, currentDate)) {
+    bool rc = findTickPosition(pos, currentDate);
+    if (!rc) {
         return false;
     }
     //update indicator
-    ind = new QCPItemText(this);
-    _indicators[indicatorName] = ind;
-    return setupItemText(ind, indicatorName, _tickVector.at(pos),
-                         position[key]);
+    QCPItemText *ind = _indicators[indicatorName];
+    ind->position->setCoords(_tickVector.at(pos), position[key]);
+    return true;
 }
 
 bool MarketProfile::updateIndicator(const QString &indicatorName, bool show)
