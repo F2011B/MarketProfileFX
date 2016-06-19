@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include "qcustomplot.h"
 
-class MarketProfile {
+class MarketProfile : public QCustomPlot {
 public:
     struct Data
     {
@@ -17,7 +17,7 @@ public:
         double close;
         int volume;
     };
-    MarketProfile(QCustomPlot *customPlot, const QFont &currentFont);
+    explicit MarketProfile(QWidget *parent);
     void display(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
@@ -58,7 +58,6 @@ private:
     char _currentLiteral;
     static const char _emptyChar;
     QVector<QVector<char> > _literalMatrix;
-    QCustomPlot *_customPlot;
     double _yMin;
     double _yMax;
     QVector<QString> _item;

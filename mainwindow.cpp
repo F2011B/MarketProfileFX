@@ -6,12 +6,10 @@ MainWindow::MainWindow(QWidget *parent)
     resize(548, 420);
     QWidget *centralWidget= new QWidget(this);
     QVBoxLayout *verticalLayout= new QVBoxLayout(centralWidget);
-    _customPlot = new QCustomPlot(centralWidget);
-    _customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                 QCP::iSelectLegend | QCP::iSelectPlottables);
-    verticalLayout->addWidget(_customPlot);
+
+    _profile = new MarketProfile(centralWidget);
+    verticalLayout->addWidget(_profile);
     setCentralWidget(centralWidget);
-    _profile = new MarketProfile(_customPlot, font());
 }
 
 MainWindow::~MainWindow()

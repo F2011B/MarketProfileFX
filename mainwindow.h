@@ -14,7 +14,6 @@ public:
     ~MainWindow();
     bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &timeSeries);
 private:
-    QCustomPlot *_customPlot;
     MarketProfile *_profile;
 };
 

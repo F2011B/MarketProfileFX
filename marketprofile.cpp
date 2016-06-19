@@ -5,16 +5,20 @@
 
 const char MarketProfile::_emptyChar = ' ';
 
-MarketProfile::MarketProfile(QCustomPlot *customPlot, const QFont &currentFont) : _letterHeight(0),
-  _currentLiteral('A'), _customPlot(customPlot),
-  _yMin(-1), _yMax(-1), _xPos(0), _currentFont(currentFont),
+MarketProfile::MarketProfile(QWidget *parent) :
+  QCustomPlot(parent),
+  _letterHeight(0),
+  _currentLiteral('A'),
+  _yMin(-1), _yMax(-1), _xPos(0),
   _currentYMin(-1)
 {
-    _customPlot->xAxis->setSubTickCount(0);
-    _customPlot->xAxis->setTickLength(0, 4);
-    _customPlot->xAxis->setTickLabelRotation(20);
-    _customPlot->xAxis->setAutoTicks(false);
-    _customPlot->xAxis->setAutoTickLabels(false);
+    setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                    QCP::iSelectLegend | QCP::iSelectPlottables);
+    this->xAxis->setSubTickCount(0);
+    this->xAxis->setTickLength(0, 4);
+    this->xAxis->setTickLabelRotation(20);
+    this->xAxis->setAutoTicks(false);
+    this->xAxis->setAutoTickLabels(false);
     _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
 }
 
@@ -91,8 +95,6 @@ void MarketProfile::processCurrentDay()
     }
 
     QVector<char> bar = _literalMatrix.front();
-    qDebug() << bar;
-
     if (_item.isEmpty()) {
         _item.resize(bar.size());
     }
@@ -162,30 +164,28 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
 
 void MarketProfile::displayItem()
 {
-    if (NULL != _customPlot) {
-        _customPlot->yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
+    this->yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
-        int nbChars = 0;
-        for (int n = 0; n < _item.size(); ++n) {
-            QCPItemText *barText = new QCPItemText(_customPlot);
-            _customPlot->addItem(barText);
-            barText->setPositionAlignment(Qt::AlignLeft);
-            barText->position->setType(QCPItemPosition::ptPlotCoords);
-            barText->position->setCoords(_xPos, _currentYMin+(n+1)*_letterHeight);
-            _currentFont.setPointSize(10);
-            barText->setFont(_currentFont);
-            QString row = _item.at(n);
-            barText->setText(row);
-            if (nbChars < row.size()) {
-                nbChars = row.size();
-            }
+    int nbChars = 0;
+    for (int n = 0; n < _item.size(); ++n) {
+        QCPItemText *barText = new QCPItemText(this);
+        addItem(barText);
+        barText->setPositionAlignment(Qt::AlignLeft);
+        barText->position->setType(QCPItemPosition::ptPlotCoords);
+        barText->position->setCoords(_xPos, _currentYMin+(n+1)*_letterHeight);
+        _currentFont.setPointSize(10);
+        barText->setFont(_currentFont);
+        QString row = _item.at(n);
+        barText->setText(row);
+        if (nbChars < row.size()) {
+            nbChars = row.size();
         }
-        _tickVector.push_back(_xPos);
-        _customPlot->xAxis->setTickVector(_tickVector);
-        _customPlot->xAxis->setTickVectorLabels(_tickVectorLabels);
-        //new x position
-        _xPos += nbChars*5*_letterHeight;
-        _customPlot->xAxis->setRange(0, _xPos);
     }
+    _tickVector.push_back(_xPos);
+    this->xAxis->setTickVector(_tickVector);
+    this->xAxis->setTickVectorLabels(_tickVectorLabels);
+    //new x position
+    _xPos += nbChars*5*_letterHeight;
+    this->xAxis->setRange(0, _xPos);
     _item.clear();
 }
