@@ -6,12 +6,9 @@
 const char MarketProfile::_emptyChar = ' ';
 
 MarketProfile::MarketProfile(QWidget *parent) :
-  QCustomPlot(parent),
-  _letterHeight(0),
-  _currentLiteral('A'),
-  _yMin(-1), _yMax(-1), _xPos(0),
-  _currentYMin(-1)
+  QCustomPlot(parent)
 {
+    clear();
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                     QCP::iSelectLegend | QCP::iSelectPlottables);
     xAxis->setSubTickCount(0);
@@ -136,14 +133,17 @@ void MarketProfile::dumpLiteralMatrix()
     }
 }
 
-void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
+bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data)
 {
+    if (data.isEmpty()) {
+        return false;
+    }
     QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
     QVector<double> upper;
     QVector<double> lower;
     QDate currentDate;
-    _tickVector.clear();
-    _tickVectorLabels.clear();
+    QCustomPlot::clearItems();
+    clear();
     for (; i != data.constEnd(); ++i) {
         QDateTime dateTime = i.key();
         if ((currentDate != dateTime.date()) && !upper.isEmpty()) {
@@ -160,6 +160,7 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
     if (!upper.isEmpty()) {
         process(upper, lower, currentDate);
     }
+    return true;
 }
 
 void MarketProfile::displayItem()
@@ -242,4 +243,18 @@ bool MarketProfile::setLabelColor(int red, int green, int blue)
     setXLabel(xAxis->label());
     setYLabel(yAxis->label());
     return true;
+}
+
+void MarketProfile::clear()
+{
+    _letterHeight = 0;
+    _currentLiteral = 'A';
+    _literalMatrix.clear();
+    _yMin = -1;
+    _yMax = -1;
+    _item.clear();
+    _xPos = 0;
+    _currentYMin = -1;
+    _tickVector.clear();
+    _tickVectorLabels.clear();
 }

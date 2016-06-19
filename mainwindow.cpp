@@ -17,16 +17,3 @@ MainWindow::MainWindow(QWidget *parent)
     verticalLayout->addWidget(_profile);
     setCentralWidget(centralWidget);
 }
-
-MainWindow::~MainWindow()
-{
-}
-
-bool MainWindow::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &timeSeries)
-{
-    if (NULL != _profile) {
-        _profile->display(timeSeries);
-        return true;
-    }
-    return false;
-}

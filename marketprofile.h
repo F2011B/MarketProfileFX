@@ -23,7 +23,7 @@ public:
     bool setXLabel(const QString &label);
     bool setYLabel(const QString &label);
     bool setLabelColor(int red, int green, int blue);
-    void display(const QMap<QDateTime, MarketProfile::Data> &data);
+    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
     void process(const QVector<double> &upper, const QVector<double> &lower,
@@ -61,8 +61,9 @@ private:
     bool isValidColor(int val) {
         return ((0 <= val) && (255 >= val));
     }
-
     void displayItem();
+    void clear();
+
     double _letterHeight;
     char _currentLiteral;
     static const char _emptyChar;

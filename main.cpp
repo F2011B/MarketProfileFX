@@ -41,17 +41,6 @@ int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
     return EXIT_SUCCESS;
 }
 
-/*static
-void showMarketData(const QMap<QDateTime, MarketProfile::Data> &data)
-{
-    QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
-    int n = 0;
-    for (; i != data.constEnd(); ++i) {
-        MarketProfile::Data md = i.value();
-        qInfo() << n++ << i.key() << md.open << md.high << md.low << md.close << md.volume;
-    }
-}*/
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -59,9 +48,19 @@ int main(int argc, char *argv[])
 
     QMap<QDateTime, MarketProfile::Data> data;
     if (EXIT_SUCCESS == generateData(data)) {
-        //showMarketData(data);
-        w.loadTimeSeries(data);
+        bool rc = w.marketProfile()->loadTimeSeries(data);
+        if (!rc) {
+            qCritical() << "Cannot load time series";
+        }
     }
+
+    /*data.clear();
+    if (EXIT_SUCCESS == generateData(data, 14)) {
+        bool rc = w.marketProfile()->loadTimeSeries(data);
+        if (!rc) {
+            qCritical() << "Cannot load time series";
+        }
+    }*/
 
     w.show();
 

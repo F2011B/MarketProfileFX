@@ -11,8 +11,11 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &timeSeries);
+    ~MainWindow() {}
+    MarketProfile* marketProfile() {
+        return _profile;
+    }
+
 private:
     MarketProfile *_profile;
 };
