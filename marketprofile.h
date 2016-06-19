@@ -23,7 +23,10 @@ public:
     bool setXLabel(const QString &label);
     bool setYLabel(const QString &label);
     bool setLabelColor(int red, int green, int blue);
-    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data);
+    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data, bool update = false);
+    bool updateTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data) {
+        return loadTimeSeries(data, true);
+    }
 private:
     enum {MAP_RESOLUTION = 10};
     void process(const QVector<double> &upper, const QVector<double> &lower,

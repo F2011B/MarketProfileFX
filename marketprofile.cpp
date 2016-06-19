@@ -133,17 +133,20 @@ void MarketProfile::dumpLiteralMatrix()
     }
 }
 
-bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data)
+bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data,
+                                   bool update)
 {
     if (data.isEmpty()) {
         return false;
+    }
+    if (!update) {
+        QCustomPlot::clearItems();
+        clear();
     }
     QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
     QVector<double> upper;
     QVector<double> lower;
     QDate currentDate;
-    QCustomPlot::clearItems();
-    clear();
     for (; i != data.constEnd(); ++i) {
         QDateTime dateTime = i.key();
         if ((currentDate != dateTime.date()) && !upper.isEmpty()) {

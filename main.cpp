@@ -62,6 +62,14 @@ int main(int argc, char *argv[])
         }
     }*/
 
+    /*data.clear();
+    if (EXIT_SUCCESS == generateData(data, 14)) {
+        bool rc = w.marketProfile()->updateTimeSeries(data);
+        if (!rc) {
+            qCritical() << "Cannot load time series";
+        }
+    }*/
+
     w.show();
 
     return a.exec();
