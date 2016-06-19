@@ -19,7 +19,7 @@ MarketProfile::MarketProfile(QWidget *parent) :
     _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
 }
 
-//compute the height of the literal as the average daily range divided by 10
+//compute the height of the literal as the average daily range divided by MAP_RESOLUTION
 void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
                                          const QVector<double> &lower)
 {
