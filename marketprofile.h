@@ -63,7 +63,7 @@ private:
     double _yMax;
     QVector<QString> _item;
     double _xPos;
-    const QFont _currentFont;
+    QFont _currentFont;
     double _currentYMin;
     QVector<double> _tickVector;
     QVector<QString> _tickVectorLabels;

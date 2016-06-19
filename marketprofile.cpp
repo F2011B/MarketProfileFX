@@ -15,6 +15,7 @@ MarketProfile::MarketProfile(QCustomPlot *customPlot, const QFont &currentFont) 
     _customPlot->xAxis->setTickLabelRotation(20);
     _customPlot->xAxis->setAutoTicks(false);
     _customPlot->xAxis->setAutoTickLabels(false);
+    _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
 }
 
 //compute the height of the literal as the average daily range divided by 10
@@ -173,10 +174,8 @@ void MarketProfile::displayItem()
             barText->setPositionAlignment(Qt::AlignLeft);
             barText->position->setType(QCPItemPosition::ptPlotCoords);
             barText->position->setCoords(_xPos, _currentYMin+n*_letterHeight);
-            QFont font(_currentFont.family());
-            //font.setPixelSize(pixelSize);
-            font.setLetterSpacing(QFont::PercentageSpacing, 0);
-            barText->setFont(font);
+            //_currentFont.setPixelSize(pixelSize);
+            barText->setFont(_currentFont);
             QString row = _item.at(n);
             barText->setText(row);
             if (nbChars < row.size()) {

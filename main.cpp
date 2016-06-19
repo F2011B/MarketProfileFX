@@ -41,7 +41,7 @@ int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
     return EXIT_SUCCESS;
 }
 
-static
+/*static
 void showMarketData(const QMap<QDateTime, MarketProfile::Data> &data)
 {
     QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
@@ -50,7 +50,7 @@ void showMarketData(const QMap<QDateTime, MarketProfile::Data> &data)
         MarketProfile::Data md = i.value();
         qInfo() << n++ << i.key() << md.open << md.high << md.low << md.close << md.volume;
     }
-}
+}*/
 
 int main(int argc, char *argv[])
 {
