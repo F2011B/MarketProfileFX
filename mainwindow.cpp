@@ -8,6 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
     QVBoxLayout *verticalLayout= new QVBoxLayout(centralWidget);
 
     _profile = new MarketProfile(centralWidget);
+    _profile->setBackgroudColor(255, 255, 255);
+    _profile->setLiteralColor(0, 0, 255);
+
     verticalLayout->addWidget(_profile);
     setCentralWidget(centralWidget);
 }

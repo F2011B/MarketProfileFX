@@ -175,6 +175,7 @@ void MarketProfile::displayItem()
         barText->position->setCoords(_xPos, _currentYMin+(n+1)*_letterHeight);
         _currentFont.setPointSize(10);
         barText->setFont(_currentFont);
+        barText->setColor(_literalColor);
         QString row = _item.at(n);
         barText->setText(row);
         if (nbChars < row.size()) {
@@ -188,4 +189,24 @@ void MarketProfile::displayItem()
     _xPos += nbChars*5*_letterHeight;
     this->xAxis->setRange(0, _xPos);
     _item.clear();
+}
+
+bool MarketProfile::setBackgroudColor(int red, int green, int blue)
+{
+    if (!isValidColor(red) || !isValidColor(green) || !isValidColor(blue)) {
+        return false;
+    }
+    QBrush brush(Qt::SolidPattern);
+    brush.setColor(QColor(red, green, blue));
+    QCustomPlot::setBackground(brush);
+    return true;
+}
+
+bool MarketProfile::setLiteralColor(int red, int green, int blue)
+{
+    if (!isValidColor(red) || !isValidColor(green) || !isValidColor(blue)) {
+        return false;
+    }
+    _literalColor.setRgb(red, green, blue);
+    return true;
 }

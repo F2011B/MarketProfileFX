@@ -18,6 +18,8 @@ public:
         int volume;
     };
     explicit MarketProfile(QWidget *parent);
+    bool setBackgroudColor(int red, int green, int blue);
+    bool setLiteralColor(int red, int green, int blue);
     void display(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
@@ -53,6 +55,10 @@ private:
             _currentLiteral = 'A';
         }
     }
+    bool isValidColor(int val) {
+        return ((0 <= val) && (255 >= val));
+    }
+
     void displayItem();
     double _letterHeight;
     char _currentLiteral;
@@ -66,6 +72,7 @@ private:
     double _currentYMin;
     QVector<double> _tickVector;
     QVector<QString> _tickVectorLabels;
+    QColor _literalColor;
 };
 
 #endif
