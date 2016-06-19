@@ -47,16 +47,19 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QMap<QDateTime, MarketProfile::Data> data;
+    MarketProfile *profile = NULL;
     if (EXIT_SUCCESS == generateData(data)) {
-        bool rc = w.marketProfile()->loadTimeSeries(data);
+        profile = w.marketProfile();
+        bool rc = profile->loadTimeSeries(data);
         if (!rc) {
             qCritical() << "Cannot load time series";
+            return EXIT_FAILURE;
         }
     }
 
     /*data.clear();
     if (EXIT_SUCCESS == generateData(data, 14)) {
-        bool rc = w.marketProfile()->loadTimeSeries(data);
+        bool rc = profile->loadTimeSeries(data);
         if (!rc) {
             qCritical() << "Cannot load time series";
         }
@@ -64,11 +67,40 @@ int main(int argc, char *argv[])
 
     /*data.clear();
     if (EXIT_SUCCESS == generateData(data, 14)) {
-        bool rc = w.marketProfile()->updateTimeSeries(data);
+        bool rc = profile->updateTimeSeries(data);
         if (!rc) {
             qCritical() << "Cannot load time series";
         }
     }*/
+
+    if (NULL != profile) {
+        QDateTime dateTime(QDate(2016, 6, 6));
+        QMap<QDateTime, double> position;
+        position[dateTime] = 80.5;
+        QString indicatorName = "test indicator";
+        bool rc = profile->addIndicator(indicatorName, position);
+        if (!rc) {
+            qCritical() << "Cannot add indicator";
+        }
+        position[dateTime] = 80.7;
+        indicatorName = "test indicator";
+        rc = profile->updateIndicator(indicatorName, position);
+        if (!rc) {
+            qCritical() << "Cannot update indicator";
+        }
+        rc = profile->hideIndicator(indicatorName);
+        if (!rc) {
+            qCritical() << "Cannot hide indicator";
+        }
+        rc = profile->showIndicator(indicatorName);
+        if (!rc) {
+            qCritical() << "Cannot show indicator";
+        }
+        rc = profile->removeIndicator(indicatorName);
+        if (!rc) {
+            qCritical() << "Cannot remove indicator";
+        }
+    }
 
     w.show();
 

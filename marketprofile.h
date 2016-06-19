@@ -27,6 +27,7 @@ public:
     bool updateTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data) {
         return loadTimeSeries(data, true);
     }
+    // all methods for indicator manipulation use indicator name for identification
     bool addIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
     bool removeIndicator(const QString &indicatorName);
     bool updateIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
@@ -76,8 +77,9 @@ private:
     }
     void displayItem();
     void clear();
-    void setupItemText(QCPItemText *itemText, const QString &text, double x, double y);
+    bool setupItemText(QCPItemText *itemText, const QString &text, double x, double y);
     bool updateIndicator(const QString &indicatorName, bool show = true);
+    bool findTickPosition(int &pos, const QDate &currentDate);
 
     double _letterHeight;
     char _currentLiteral;

@@ -189,7 +189,7 @@ void MarketProfile::displayItem()
     _item.clear();
 }
 
-void MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
+bool MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
                                   double x, double y)
 {
     itemText->setPositionAlignment(Qt::AlignLeft);
@@ -198,7 +198,7 @@ void MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
     itemText->setFont(_currentFont);
     itemText->setColor(_literalColor);
     itemText->setText(text);
-    addItem(itemText);
+    return addItem(itemText);
 }
 
 bool MarketProfile::setBackgroudColor(int red, int green, int blue)
@@ -283,19 +283,15 @@ bool MarketProfile::addIndicator(const QString &indicatorName,
     QDateTime key = position.firstKey();
     const QDate currentDate = key.date();
     int pos = 0;
-    for (; pos < _tickVectorDates.size(); ++pos) {
-        if (currentDate == _tickVectorDates.at(pos)) {
-            break;
-        }
-    }
-    if (pos >= _tickVectorDates.size()) {
+    bool rc = findTickPosition(pos, currentDate);
+    if (!rc) {
         return false;
     }
     //the position has been found
     QCPItemText *ind = new QCPItemText(this);
     _indicators[indicatorName] = ind;
-    setupItemText(ind, indicatorName, _tickVector.at(pos), position[key]);
-    return true;
+    return setupItemText(ind, indicatorName, _tickVector.at(pos),
+                         position[key]);
 }
 
 bool MarketProfile::updateIndicator(const QString &indicatorName,
@@ -310,9 +306,22 @@ bool MarketProfile::updateIndicator(const QString &indicatorName,
     }
     //update indicator
     QCPItemText *ind = _indicators[indicatorName];
-    removeItem(ind);
-    setupItemText(ind, indicatorName, ind->position->key(), ind->position->value());
-    return true;
+    bool rc = removeItem(ind);
+    if (!rc) {
+        return false;
+    }
+    //search input data in existing tick dates
+    QDateTime key = position.firstKey();
+    const QDate currentDate = key.date();
+    int pos = 0;
+    if (!findTickPosition(pos, currentDate)) {
+        return false;
+    }
+    //update indicator
+    ind = new QCPItemText(this);
+    _indicators[indicatorName] = ind;
+    return setupItemText(ind, indicatorName, _tickVector.at(pos),
+                         position[key]);
 }
 
 bool MarketProfile::updateIndicator(const QString &indicatorName, bool show)
@@ -326,17 +335,8 @@ bool MarketProfile::updateIndicator(const QString &indicatorName, bool show)
     }
     //show/hide indicator
     QCPItemText *ind = _indicators[indicatorName];
-    bool rc = false;
-    if (show) {
-        if (!hasItem(ind)) {
-            addItem(ind);
-            rc = true;
-        }
-    } else if (hasItem(ind)) {
-        removeItem(ind);
-        rc = true;
-    }
-    return rc;
+    ind->setVisible(show);
+    return true;
 }
 
 bool MarketProfile::removeIndicator(const QString &indicatorName)
@@ -350,9 +350,21 @@ bool MarketProfile::removeIndicator(const QString &indicatorName)
     }
     //remove indicator
     QCPItemText *ind = _indicators[indicatorName];
+    bool rc = false;
     if (hasItem(ind)) {
-        removeItem(ind);
+        rc = removeItem(ind);
     }
     _indicators.remove(indicatorName);
-    return true;
+    return rc;
+}
+
+bool MarketProfile::findTickPosition(int &pos, const QDate &currentDate)
+{
+    pos = 0;
+    for (; pos < _tickVectorDates.size(); ++pos) {
+        if (currentDate == _tickVectorDates.at(pos)) {
+            break;
+        }
+    }
+    return (pos < _tickVectorDates.size());
 }
