@@ -20,6 +20,9 @@ public:
     explicit MarketProfile(QWidget *parent);
     bool setBackgroudColor(int red, int green, int blue);
     bool setLiteralColor(int red, int green, int blue);
+    bool setXLabel(const QString &label);
+    bool setYLabel(const QString &label);
+    bool setLabelColor(int red, int green, int blue);
     void display(const QMap<QDateTime, MarketProfile::Data> &data);
 private:
     enum {MAP_RESOLUTION = 10};
@@ -73,6 +76,7 @@ private:
     QVector<double> _tickVector;
     QVector<QString> _tickVectorLabels;
     QColor _literalColor;
+    QColor _labelColor;
 };
 
 #endif

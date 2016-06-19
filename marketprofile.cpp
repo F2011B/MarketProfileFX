@@ -14,11 +14,11 @@ MarketProfile::MarketProfile(QWidget *parent) :
 {
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                     QCP::iSelectLegend | QCP::iSelectPlottables);
-    this->xAxis->setSubTickCount(0);
-    this->xAxis->setTickLength(0, 4);
-    this->xAxis->setTickLabelRotation(20);
-    this->xAxis->setAutoTicks(false);
-    this->xAxis->setAutoTickLabels(false);
+    xAxis->setSubTickCount(0);
+    xAxis->setTickLength(0, 4);
+    xAxis->setTickLabelRotation(20);
+    xAxis->setAutoTicks(false);
+    xAxis->setAutoTickLabels(false);
     _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
 }
 
@@ -164,7 +164,7 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
 
 void MarketProfile::displayItem()
 {
-    this->yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
+    yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
     int nbChars = 0;
     for (int n = 0; n < _item.size(); ++n) {
@@ -183,11 +183,11 @@ void MarketProfile::displayItem()
         }
     }
     _tickVector.push_back(_xPos);
-    this->xAxis->setTickVector(_tickVector);
-    this->xAxis->setTickVectorLabels(_tickVectorLabels);
+    xAxis->setTickVector(_tickVector);
+    xAxis->setTickVectorLabels(_tickVectorLabels);
     //new x position
     _xPos += nbChars*5*_letterHeight;
-    this->xAxis->setRange(0, _xPos);
+    xAxis->setRange(0, _xPos);
     _item.clear();
 }
 
@@ -208,5 +208,38 @@ bool MarketProfile::setLiteralColor(int red, int green, int blue)
         return false;
     }
     _literalColor.setRgb(red, green, blue);
+    return true;
+}
+
+bool MarketProfile::setXLabel(const QString &label)
+{
+    if (label.isEmpty()) {
+        return false;
+    }
+    xAxis->setLabelColor(_labelColor);
+    xAxis->setTickLabelColor(_labelColor);
+    xAxis->setLabel(label);
+    return true;
+}
+
+bool MarketProfile::setYLabel(const QString &label)
+{
+    if (label.isEmpty()) {
+        return false;
+    }
+    yAxis->setLabelColor(_labelColor);
+    yAxis->setTickLabelColor(_labelColor);
+    yAxis->setLabel(label);
+    return true;
+}
+
+bool MarketProfile::setLabelColor(int red, int green, int blue)
+{
+    if (!isValidColor(red) || !isValidColor(green) || !isValidColor(blue)) {
+        return false;
+    }
+    _labelColor.setRgb(red, green, blue);
+    setXLabel(xAxis->label());
+    setYLabel(yAxis->label());
     return true;
 }
