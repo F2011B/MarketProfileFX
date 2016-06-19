@@ -27,11 +27,21 @@ public:
     bool updateTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data) {
         return loadTimeSeries(data, true);
     }
+    bool addIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
+    bool removeIndicator(const QString &indicatorName);
+    bool updateIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
+    bool showIndicator(const QString &indicatorName) {
+        return updateIndicator(indicatorName, true);
+    }
+    bool hideIndicator(const QString &indicatorName) {
+        return updateIndicator(indicatorName, false);
+    }
 private:
     enum {MAP_RESOLUTION = 10};
     void process(const QVector<double> &upper, const QVector<double> &lower,
                     const QDate &currentDate, bool dump = false) {
         _tickVectorLabels.push_back(currentDate.toString("MMM d yyyy"));
+        _tickVectorDates.push_back(currentDate);
         computeLiteralHeight(upper, lower);
         initLiteralMatrix(upper, lower);
         if (dump) {
@@ -66,6 +76,8 @@ private:
     }
     void displayItem();
     void clear();
+    void setupItemText(QCPItemText *itemText, const QString &text, double x, double y);
+    bool updateIndicator(const QString &indicatorName, bool show = true);
 
     double _letterHeight;
     char _currentLiteral;
@@ -79,6 +91,8 @@ private:
     double _currentYMin;
     QVector<double> _tickVector;
     QVector<QString> _tickVectorLabels;
+    QVector<QDate> _tickVectorDates;
+    QMap<QString, QCPItemText*> _indicators;
     QColor _literalColor;
     QColor _labelColor;
 };

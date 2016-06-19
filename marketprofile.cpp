@@ -172,16 +172,10 @@ void MarketProfile::displayItem()
 
     int nbChars = 0;
     for (int n = 0; n < _item.size(); ++n) {
-        QCPItemText *barText = new QCPItemText(this);
-        addItem(barText);
-        barText->setPositionAlignment(Qt::AlignLeft);
-        barText->position->setType(QCPItemPosition::ptPlotCoords);
-        barText->position->setCoords(_xPos, _currentYMin+(n+1)*_letterHeight);
         _currentFont.setPointSize(10);
-        barText->setFont(_currentFont);
-        barText->setColor(_literalColor);
         QString row = _item.at(n);
-        barText->setText(row);
+        QCPItemText *barText = new QCPItemText(this);
+        setupItemText(barText, row, _xPos, _currentYMin+(n+1)*_letterHeight);
         if (nbChars < row.size()) {
             nbChars = row.size();
         }
@@ -193,6 +187,18 @@ void MarketProfile::displayItem()
     _xPos += nbChars*5*_letterHeight;
     xAxis->setRange(0, _xPos);
     _item.clear();
+}
+
+void MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
+                                  double x, double y)
+{
+    itemText->setPositionAlignment(Qt::AlignLeft);
+    itemText->position->setType(QCPItemPosition::ptPlotCoords);
+    itemText->position->setCoords(x, y);
+    itemText->setFont(_currentFont);
+    itemText->setColor(_literalColor);
+    itemText->setText(text);
+    addItem(itemText);
 }
 
 bool MarketProfile::setBackgroudColor(int red, int green, int blue)
@@ -260,4 +266,93 @@ void MarketProfile::clear()
     _currentYMin = -1;
     _tickVector.clear();
     _tickVectorLabels.clear();
+    _tickVectorDates.clear();
+    _indicators.clear();
+}
+
+bool MarketProfile::addIndicator(const QString &indicatorName,
+                                 const QMap<QDateTime, double> &position)
+{
+    if (indicatorName.isEmpty() || position.isEmpty()) {
+        return false;
+    }
+    if (_indicators.contains(indicatorName)) {
+        return false;
+    }
+    //search input data in existing tick dates
+    QDateTime key = position.firstKey();
+    const QDate currentDate = key.date();
+    int pos = 0;
+    for (; pos < _tickVectorDates.size(); ++pos) {
+        if (currentDate == _tickVectorDates.at(pos)) {
+            break;
+        }
+    }
+    if (pos >= _tickVectorDates.size()) {
+        return false;
+    }
+    //the position has been found
+    QCPItemText *ind = new QCPItemText(this);
+    _indicators[indicatorName] = ind;
+    setupItemText(ind, indicatorName, _tickVector.at(pos), position[key]);
+    return true;
+}
+
+bool MarketProfile::updateIndicator(const QString &indicatorName,
+                                    const QMap<QDateTime, double> &position)
+{
+    if (indicatorName.isEmpty() || position.isEmpty()) {
+        return false;
+    }
+    //search for the indicator
+    if (!_indicators.contains(indicatorName)) {
+        return false;
+    }
+    //update indicator
+    QCPItemText *ind = _indicators[indicatorName];
+    removeItem(ind);
+    setupItemText(ind, indicatorName, ind->position->key(), ind->position->value());
+    return true;
+}
+
+bool MarketProfile::updateIndicator(const QString &indicatorName, bool show)
+{
+    if (indicatorName.isEmpty()) {
+        return false;
+    }
+    //search for the indicator
+    if (!_indicators.contains(indicatorName)) {
+        return false;
+    }
+    //show/hide indicator
+    QCPItemText *ind = _indicators[indicatorName];
+    bool rc = false;
+    if (show) {
+        if (!hasItem(ind)) {
+            addItem(ind);
+            rc = true;
+        }
+    } else if (hasItem(ind)) {
+        removeItem(ind);
+        rc = true;
+    }
+    return rc;
+}
+
+bool MarketProfile::removeIndicator(const QString &indicatorName)
+{
+    if (indicatorName.isEmpty()) {
+        return false;
+    }
+    //search for the indicator
+    if (!_indicators.contains(indicatorName)) {
+        return false;
+    }
+    //remove indicator
+    QCPItemText *ind = _indicators[indicatorName];
+    if (hasItem(ind)) {
+        removeItem(ind);
+    }
+    _indicators.remove(indicatorName);
+    return true;
 }
