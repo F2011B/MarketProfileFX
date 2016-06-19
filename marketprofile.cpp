@@ -163,9 +163,7 @@ void MarketProfile::display(const QMap<QDateTime, MarketProfile::Data> &data)
 void MarketProfile::displayItem()
 {
     if (NULL != _customPlot) {
-        _customPlot->yAxis->setRange(_yMin, _yMax);
-        qDebug() << "y min" << _yMin << "y max" << _yMax;
-        qDebug() << "current y min" << _currentYMin;
+        _customPlot->yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
         int nbChars = 0;
         for (int n = 0; n < _item.size(); ++n) {
@@ -173,8 +171,8 @@ void MarketProfile::displayItem()
             _customPlot->addItem(barText);
             barText->setPositionAlignment(Qt::AlignLeft);
             barText->position->setType(QCPItemPosition::ptPlotCoords);
-            barText->position->setCoords(_xPos, _currentYMin+n*_letterHeight);
-            //_currentFont.setPixelSize(pixelSize);
+            barText->position->setCoords(_xPos, _currentYMin+(n+1)*_letterHeight);
+            _currentFont.setPointSize(10);
             barText->setFont(_currentFont);
             QString row = _item.at(n);
             barText->setText(row);
