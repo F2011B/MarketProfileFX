@@ -231,84 +231,6 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::MarginSides)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::Interactions)
 
 
-class QCP_LIB_DECL QCPScatterStyle
-{
-  Q_GADGET
-public:
-  /*!
-    Defines the shape used for scatter points.
-
-    On plottables/items that draw scatters, the sizes of these visualizations (with exception of
-    \ref ssDot and \ref ssPixmap) can be controlled with the \ref setSize function. Scatters are
-    drawn with the pen and brush specified with \ref setPen and \ref setBrush.
-  */
-  Q_ENUMS(ScatterShape)
-  enum ScatterShape { ssNone       ///< no scatter symbols are drawn (e.g. in QCPGraph, data only represented with lines)
-                      ,ssDot       ///< \enumimage{ssDot.png} a single pixel (use \ref ssDisc or \ref ssCircle if you want a round shape with a certain radius)
-                      ,ssCross     ///< \enumimage{ssCross.png} a cross
-                      ,ssPlus      ///< \enumimage{ssPlus.png} a plus
-                      ,ssCircle    ///< \enumimage{ssCircle.png} a circle
-                      ,ssDisc      ///< \enumimage{ssDisc.png} a circle which is filled with the pen's color (not the brush as with ssCircle)
-                      ,ssSquare    ///< \enumimage{ssSquare.png} a square
-                      ,ssDiamond   ///< \enumimage{ssDiamond.png} a diamond
-                      ,ssStar      ///< \enumimage{ssStar.png} a star with eight arms, i.e. a combination of cross and plus
-                      ,ssTriangle  ///< \enumimage{ssTriangle.png} an equilateral triangle, standing on baseline
-                      ,ssTriangleInverted ///< \enumimage{ssTriangleInverted.png} an equilateral triangle, standing on corner
-                      ,ssCrossSquare      ///< \enumimage{ssCrossSquare.png} a square with a cross inside
-                      ,ssPlusSquare       ///< \enumimage{ssPlusSquare.png} a square with a plus inside
-                      ,ssCrossCircle      ///< \enumimage{ssCrossCircle.png} a circle with a cross inside
-                      ,ssPlusCircle       ///< \enumimage{ssPlusCircle.png} a circle with a plus inside
-                      ,ssPeace     ///< \enumimage{ssPeace.png} a circle, with one vertical and two downward diagonal lines
-                      ,ssPixmap    ///< a custom pixmap specified by \ref setPixmap, centered on the data point coordinates
-                      ,ssCustom    ///< custom painter operations are performed per scatter (As QPainterPath, see \ref setCustomPath)
-                    };
-
-  QCPScatterStyle();
-  QCPScatterStyle(ScatterShape shape, double size=6);
-  QCPScatterStyle(ScatterShape shape, const QColor &color, double size);
-  QCPScatterStyle(ScatterShape shape, const QColor &color, const QColor &fill, double size);
-  QCPScatterStyle(ScatterShape shape, const QPen &pen, const QBrush &brush, double size);
-  QCPScatterStyle(const QPixmap &pixmap);
-  QCPScatterStyle(const QPainterPath &customPath, const QPen &pen, const QBrush &brush=Qt::NoBrush, double size=6);
-  
-  // getters:
-  double size() const { return mSize; }
-  ScatterShape shape() const { return mShape; }
-  QPen pen() const { return mPen; }
-  QBrush brush() const { return mBrush; }
-  QPixmap pixmap() const { return mPixmap; }
-  QPainterPath customPath() const { return mCustomPath; }
-
-  // setters:
-  void setSize(double size);
-  void setShape(ScatterShape shape);
-  void setPen(const QPen &pen);
-  void setBrush(const QBrush &brush);
-  void setPixmap(const QPixmap &pixmap);
-  void setCustomPath(const QPainterPath &customPath);
-
-  // non-property methods:
-  bool isNone() const { return mShape == ssNone; }
-  bool isPenDefined() const { return mPenDefined; }
-  void applyTo(QCPPainter *painter, const QPen &defaultPen) const;
-  void drawShape(QCPPainter *painter, QPointF pos) const;
-  void drawShape(QCPPainter *painter, double x, double y) const;
-
-protected:
-  // property members:
-  double mSize;
-  ScatterShape mShape;
-  QPen mPen;
-  QBrush mBrush;
-  QPixmap mPixmap;
-  QPainterPath mCustomPath;
-  
-  // non-property members:
-  bool mPenDefined;
-};
-Q_DECLARE_TYPEINFO(QCPScatterStyle, Q_MOVABLE_TYPE);
-
-
 class QCP_LIB_DECL QCPPainter : public QPainter
 {
   Q_GADGET
@@ -2492,7 +2414,6 @@ class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
-  Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
   Q_PROPERTY(ErrorType errorType READ errorType WRITE setErrorType)
   Q_PROPERTY(QPen errorPen READ errorPen WRITE setErrorPen)
   Q_PROPERTY(double errorBarSize READ errorBarSize WRITE setErrorBarSize)
@@ -2531,7 +2452,6 @@ public:
   // getters:
   QCPDataMap *data() const { return mData; }
   LineStyle lineStyle() const { return mLineStyle; }
-  QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   ErrorType errorType() const { return mErrorType; }
   QPen errorPen() const { return mErrorPen; }
   double errorBarSize() const { return mErrorBarSize; }
@@ -2549,7 +2469,6 @@ public:
   void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError);
   void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus);
   void setLineStyle(LineStyle ls);
-  void setScatterStyle(const QCPScatterStyle &style);
   void setErrorType(ErrorType errorType);
   void setErrorPen(const QPen &pen);
   void setErrorBarSize(double size);
@@ -2582,7 +2501,6 @@ protected:
   QCPDataMap *mData;
   QPen mErrorPen;
   LineStyle mLineStyle;
-  QCPScatterStyle mScatterStyle;
   ErrorType mErrorType;
   double mErrorBarSize;
   bool mErrorBarSkipSymbol;
@@ -2599,7 +2517,6 @@ protected:
   
   // introduced virtual methods:
   virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const;
   virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   
@@ -2661,7 +2578,6 @@ class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
-  Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   /// \endcond
 public:
@@ -2678,14 +2594,12 @@ public:
   
   // getters:
   QCPCurveDataMap *data() const { return mData; }
-  QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
   void setData(QCPCurveDataMap *data, bool copy=false);
   void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value);
   void setData(const QVector<double> &key, const QVector<double> &value);
-  void setScatterStyle(const QCPScatterStyle &style);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
@@ -2706,7 +2620,6 @@ public:
 protected:
   // property members:
   QCPCurveDataMap *mData;
-  QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   
   // reimplemented virtual methods:
@@ -2714,9 +2627,6 @@ protected:
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
   virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
   virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  
-  // introduced virtual methods:
-  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;
   
   // non-virtual methods:
   void getCurveData(QVector<QPointF> *lineData) const;
@@ -2928,7 +2838,6 @@ class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable
   Q_PROPERTY(QPen whiskerPen READ whiskerPen WRITE setWhiskerPen)
   Q_PROPERTY(QPen whiskerBarPen READ whiskerBarPen WRITE setWhiskerBarPen)
   Q_PROPERTY(QPen medianPen READ medianPen WRITE setMedianPen)
-  Q_PROPERTY(QCPScatterStyle outlierStyle READ outlierStyle WRITE setOutlierStyle)
   /// \endcond
 public:
   explicit QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis);
@@ -2946,7 +2855,6 @@ public:
   QPen whiskerPen() const { return mWhiskerPen; }
   QPen whiskerBarPen() const { return mWhiskerBarPen; }
   QPen medianPen() const { return mMedianPen; }
-  QCPScatterStyle outlierStyle() const { return mOutlierStyle; }
 
   // setters:
   void setKey(double key);
@@ -2962,7 +2870,6 @@ public:
   void setWhiskerPen(const QPen &pen);
   void setWhiskerBarPen(const QPen &pen);
   void setMedianPen(const QPen &pen);
-  void setOutlierStyle(const QCPScatterStyle &style);
   
   // non-property methods:
   virtual void clearData();
@@ -2975,7 +2882,6 @@ protected:
   double mWidth;
   double mWhiskerWidth;
   QPen mWhiskerPen, mWhiskerBarPen, mMedianPen;
-  QCPScatterStyle mOutlierStyle;
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
@@ -2987,7 +2893,6 @@ protected:
   virtual void drawQuartileBox(QCPPainter *painter, QRectF *quartileBox=0) const;
   virtual void drawMedian(QCPPainter *painter) const;
   virtual void drawWhiskers(QCPPainter *painter) const;
-  virtual void drawOutliers(QCPPainter *painter) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

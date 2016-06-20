@@ -244,426 +244,6 @@ void QCPPainter::makeNonCosmetic()
   }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPScatterStyle
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*! \class QCPScatterStyle
-  \brief Represents the visual appearance of scatter points
-  
-  This class holds information about shape, color and size of scatter points. In plottables like
-  QCPGraph it is used to store how scatter points shall be drawn. For example, \ref
-  QCPGraph::setScatterStyle takes a QCPScatterStyle instance.
-  
-  A scatter style consists of a shape (\ref setShape), a line color (\ref setPen) and possibly a
-  fill (\ref setBrush), if the shape provides a fillable area. Further, the size of the shape can
-  be controlled with \ref setSize.
-
-  \section QCPScatterStyle-defining Specifying a scatter style
-  
-  You can set all these configurations either by calling the respective functions on an instance:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpscatterstyle-creation-1
-  
-  Or you can use one of the various constructors that take different parameter combinations, making
-  it easy to specify a scatter style in a single call, like so:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpscatterstyle-creation-2
-  
-  \section QCPScatterStyle-undefinedpen Leaving the color/pen up to the plottable
-  
-  There are two constructors which leave the pen undefined: \ref QCPScatterStyle() and \ref
-  QCPScatterStyle(ScatterShape shape, double size). If those constructors are used, a call to \ref
-  isPenDefined will return false. It leads to scatter points that inherit the pen from the
-  plottable that uses the scatter style. Thus, if such a scatter style is passed to QCPGraph, the line
-  color of the graph (\ref QCPGraph::setPen) will be used by the scatter points. This makes
-  it very convenient to set up typical scatter settings:
-  
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpscatterstyle-shortcreation
-
-  Notice that it wasn't even necessary to explicitly call a QCPScatterStyle constructor. This works
-  because QCPScatterStyle provides a constructor that can transform a \ref ScatterShape directly
-  into a QCPScatterStyle instance (that's the \ref QCPScatterStyle(ScatterShape shape, double size)
-  constructor with a default for \a size). In those cases, C++ allows directly supplying a \ref
-  ScatterShape, where actually a QCPScatterStyle is expected.
-  
-  \section QCPScatterStyle-custompath-and-pixmap Custom shapes and pixmaps
-  
-  QCPScatterStyle supports drawing custom shapes and arbitrary pixmaps as scatter points.
-
-  For custom shapes, you can provide a QPainterPath with the desired shape to the \ref
-  setCustomPath function or call the constructor that takes a painter path. The scatter shape will
-  automatically be set to \ref ssCustom.
-  
-  For pixmaps, you call \ref setPixmap with the desired QPixmap. Alternatively you can use the
-  constructor that takes a QPixmap. The scatter shape will automatically be set to \ref ssPixmap.
-  Note that \ref setSize does not influence the appearance of the pixmap.
-*/
-
-/* start documentation of inline functions */
-
-/*! \fn bool QCPScatterStyle::isNone() const
-  
-  Returns whether the scatter shape is \ref ssNone.
-  
-  \see setShape
-*/
-
-/*! \fn bool QCPScatterStyle::isPenDefined() const
-  
-  Returns whether a pen has been defined for this scatter style.
-  
-  The pen is undefined if a constructor is called that does not carry \a pen as parameter. Those are
-  \ref QCPScatterStyle() and \ref QCPScatterStyle(ScatterShape shape, double size). If the pen is
-  left undefined, the scatter color will be inherited from the plottable that uses this scatter
-  style.
-  
-  \see setPen
-*/
-
-/* end documentation of inline functions */
-
-/*!
-  Creates a new QCPScatterStyle instance with size set to 6. No shape, pen or brush is defined.
-  
-  Since the pen is undefined (\ref isPenDefined returns false), the scatter color will be inherited
-  from the plottable that uses this scatter style.
-*/
-QCPScatterStyle::QCPScatterStyle() :
-  mSize(6),
-  mShape(ssNone),
-  mPen(Qt::NoPen),
-  mBrush(Qt::NoBrush),
-  mPenDefined(false)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance with shape set to \a shape and size to \a size. No pen or
-  brush is defined.
-  
-  Since the pen is undefined (\ref isPenDefined returns false), the scatter color will be inherited
-  from the plottable that uses this scatter style.
-*/
-QCPScatterStyle::QCPScatterStyle(ScatterShape shape, double size) :
-  mSize(size),
-  mShape(shape),
-  mPen(Qt::NoPen),
-  mBrush(Qt::NoBrush),
-  mPenDefined(false)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance with shape set to \a shape, the pen color set to \a color,
-  and size to \a size. No brush is defined, i.e. the scatter point will not be filled.
-*/
-QCPScatterStyle::QCPScatterStyle(ScatterShape shape, const QColor &color, double size) :
-  mSize(size),
-  mShape(shape),
-  mPen(QPen(color)),
-  mBrush(Qt::NoBrush),
-  mPenDefined(true)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance with shape set to \a shape, the pen color set to \a color,
-  the brush color to \a fill (with a solid pattern), and size to \a size.
-*/
-QCPScatterStyle::QCPScatterStyle(ScatterShape shape, const QColor &color, const QColor &fill, double size) :
-  mSize(size),
-  mShape(shape),
-  mPen(QPen(color)),
-  mBrush(QBrush(fill)),
-  mPenDefined(true)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance with shape set to \a shape, the pen set to \a pen, the
-  brush to \a brush, and size to \a size.
-  
-  \warning In some cases it might be tempting to directly use a pen style like <tt>Qt::NoPen</tt> as \a pen
-  and a color like <tt>Qt::blue</tt> as \a brush. Notice however, that the corresponding call\n
-  <tt>QCPScatterStyle(QCPScatterShape::ssCircle, Qt::NoPen, Qt::blue, 5)</tt>\n
-  doesn't necessarily lead C++ to use this constructor in some cases, but might mistake
-  <tt>Qt::NoPen</tt> for a QColor and use the
-  \ref QCPScatterStyle(ScatterShape shape, const QColor &color, const QColor &fill, double size)
-  constructor instead (which will lead to an unexpected look of the scatter points). To prevent
-  this, be more explicit with the parameter types. For example, use <tt>QBrush(Qt::blue)</tt>
-  instead of just <tt>Qt::blue</tt>, to clearly point out to the compiler that this constructor is
-  wanted.
-*/
-QCPScatterStyle::QCPScatterStyle(ScatterShape shape, const QPen &pen, const QBrush &brush, double size) :
-  mSize(size),
-  mShape(shape),
-  mPen(pen),
-  mBrush(brush),
-  mPenDefined(pen.style() != Qt::NoPen)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance which will show the specified \a pixmap. The scatter shape
-  is set to \ref ssPixmap.
-*/
-QCPScatterStyle::QCPScatterStyle(const QPixmap &pixmap) :
-  mSize(5),
-  mShape(ssPixmap),
-  mPen(Qt::NoPen),
-  mBrush(Qt::NoBrush),
-  mPixmap(pixmap),
-  mPenDefined(false)
-{
-}
-
-/*!
-  Creates a new QCPScatterStyle instance with a custom shape that is defined via \a customPath. The
-  scatter shape is set to \ref ssCustom.
-  
-  The custom shape line will be drawn with \a pen and filled with \a brush. The size has a slightly
-  different meaning than for built-in scatter points: The custom path will be drawn scaled by a
-  factor of \a size/6.0. Since the default \a size is 6, the custom path will appear at a its
-  natural size by default. To double the size of the path for example, set \a size to 12.
-*/
-QCPScatterStyle::QCPScatterStyle(const QPainterPath &customPath, const QPen &pen, const QBrush &brush, double size) :
-  mSize(size),
-  mShape(ssCustom),
-  mPen(pen),
-  mBrush(brush),
-  mCustomPath(customPath),
-  mPenDefined(pen.style() != Qt::NoPen)
-{
-}
-
-/*!
-  Sets the size (pixel diameter) of the drawn scatter points to \a size.
-  
-  \see setShape
-*/
-void QCPScatterStyle::setSize(double size)
-{
-  mSize = size;
-}
-
-/*!
-  Sets the shape to \a shape.
-  
-  Note that the calls \ref setPixmap and \ref setCustomPath automatically set the shape to \ref
-  ssPixmap and \ref ssCustom, respectively.
-  
-  \see setSize
-*/
-void QCPScatterStyle::setShape(QCPScatterStyle::ScatterShape shape)
-{
-  mShape = shape;
-}
-
-/*!
-  Sets the pen that will be used to draw scatter points to \a pen.
-  
-  If the pen was previously undefined (see \ref isPenDefined), the pen is considered defined after
-  a call to this function, even if \a pen is <tt>Qt::NoPen</tt>.
-  
-  \see setBrush
-*/
-void QCPScatterStyle::setPen(const QPen &pen)
-{
-  mPenDefined = true;
-  mPen = pen;
-}
-
-/*!
-  Sets the brush that will be used to fill scatter points to \a brush. Note that not all scatter
-  shapes have fillable areas. For example, \ref ssPlus does not while \ref ssCircle does.
-  
-  \see setPen
-*/
-void QCPScatterStyle::setBrush(const QBrush &brush)
-{
-  mBrush = brush;
-}
-
-/*!
-  Sets the pixmap that will be drawn as scatter point to \a pixmap.
-  
-  Note that \ref setSize does not influence the appearance of the pixmap.
-  
-  The scatter shape is automatically set to \ref ssPixmap.
-*/
-void QCPScatterStyle::setPixmap(const QPixmap &pixmap)
-{
-  setShape(ssPixmap);
-  mPixmap = pixmap;
-}
-
-/*!
-  Sets the custom shape that will be drawn as scatter point to \a customPath.
-  
-  The scatter shape is automatically set to \ref ssCustom.
-*/
-void QCPScatterStyle::setCustomPath(const QPainterPath &customPath)
-{
-  setShape(ssCustom);
-  mCustomPath = customPath;
-}
-
-/*!
-  Applies the pen and the brush of this scatter style to \a painter. If this scatter style has an
-  undefined pen (\ref isPenDefined), sets the pen of \a painter to \a defaultPen instead.
-  
-  This function is used by plottables (or any class that wants to draw scatters) just before a
-  number of scatters with this style shall be drawn with the \a painter.
-  
-  \see drawShape
-*/
-void QCPScatterStyle::applyTo(QCPPainter *painter, const QPen &defaultPen) const
-{
-  painter->setPen(mPenDefined ? mPen : defaultPen);
-  painter->setBrush(mBrush);
-}
-
-/*!
-  Draws the scatter shape with \a painter at position \a pos.
-  
-  This function does not modify the pen or the brush on the painter, as \ref applyTo is meant to be
-  called before scatter points are drawn with \ref drawShape.
-  
-  \see applyTo
-*/
-void QCPScatterStyle::drawShape(QCPPainter *painter, QPointF pos) const
-{
-  drawShape(painter, pos.x(), pos.y());
-}
-
-/*! \overload
-  Draws the scatter shape with \a painter at position \a x and \a y.
-*/
-void QCPScatterStyle::drawShape(QCPPainter *painter, double x, double y) const
-{
-  double w = mSize/2.0;
-  switch (mShape)
-  {
-    case ssNone: break;
-    case ssDot:
-    {
-      painter->drawLine(QPointF(x, y), QPointF(x+0.0001, y));
-      break;
-    }
-    case ssCross:
-    {
-      painter->drawLine(QLineF(x-w, y-w, x+w, y+w));
-      painter->drawLine(QLineF(x-w, y+w, x+w, y-w));
-      break;
-    }
-    case ssPlus:
-    {
-      painter->drawLine(QLineF(x-w,   y, x+w,   y));
-      painter->drawLine(QLineF(  x, y+w,   x, y-w));
-      break;
-    }
-    case ssCircle:
-    {
-      painter->drawEllipse(QPointF(x , y), w, w);
-      break;
-    }
-    case ssDisc:
-    {
-      QBrush b = painter->brush();
-      painter->setBrush(painter->pen().color());
-      painter->drawEllipse(QPointF(x , y), w, w);
-      painter->setBrush(b);
-      break;
-    }
-    case ssSquare:
-    {
-      painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
-      break;
-    }
-    case ssDiamond:
-    {
-      painter->drawLine(QLineF(x-w,   y,   x, y-w));
-      painter->drawLine(QLineF(  x, y-w, x+w,   y));
-      painter->drawLine(QLineF(x+w,   y,   x, y+w));
-      painter->drawLine(QLineF(  x, y+w, x-w,   y));
-      break;
-    }
-    case ssStar:
-    {
-      painter->drawLine(QLineF(x-w,   y, x+w,   y));
-      painter->drawLine(QLineF(  x, y+w,   x, y-w));
-      painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.707, y+w*0.707));
-      painter->drawLine(QLineF(x-w*0.707, y+w*0.707, x+w*0.707, y-w*0.707));
-      break;
-    }
-    case ssTriangle:
-    {
-       painter->drawLine(QLineF(x-w, y+0.755*w, x+w, y+0.755*w));
-       painter->drawLine(QLineF(x+w, y+0.755*w,   x, y-0.977*w));
-       painter->drawLine(QLineF(  x, y-0.977*w, x-w, y+0.755*w));
-      break;
-    }
-    case ssTriangleInverted:
-    {
-       painter->drawLine(QLineF(x-w, y-0.755*w, x+w, y-0.755*w));
-       painter->drawLine(QLineF(x+w, y-0.755*w,   x, y+0.977*w));
-       painter->drawLine(QLineF(  x, y+0.977*w, x-w, y-0.755*w));
-      break;
-    }
-    case ssCrossSquare:
-    {
-       painter->drawLine(QLineF(x-w, y-w, x+w*0.95, y+w*0.95));
-       painter->drawLine(QLineF(x-w, y+w*0.95, x+w*0.95, y-w));
-       painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
-      break;
-    }
-    case ssPlusSquare:
-    {
-       painter->drawLine(QLineF(x-w,   y, x+w*0.95,   y));
-       painter->drawLine(QLineF(  x, y+w,        x, y-w));
-       painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
-      break;
-    }
-    case ssCrossCircle:
-    {
-       painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.670, y+w*0.670));
-       painter->drawLine(QLineF(x-w*0.707, y+w*0.670, x+w*0.670, y-w*0.707));
-       painter->drawEllipse(QPointF(x, y), w, w);
-      break;
-    }
-    case ssPlusCircle:
-    {
-       painter->drawLine(QLineF(x-w,   y, x+w,   y));
-       painter->drawLine(QLineF(  x, y+w,   x, y-w));
-       painter->drawEllipse(QPointF(x, y), w, w);
-      break;
-    }
-    case ssPeace:
-    {
-       painter->drawLine(QLineF(x, y-w,         x,       y+w));
-       painter->drawLine(QLineF(x,   y, x-w*0.707, y+w*0.707));
-       painter->drawLine(QLineF(x,   y, x+w*0.707, y+w*0.707));
-       painter->drawEllipse(QPointF(x, y), w, w);
-      break;
-    }
-    case ssPixmap:
-    {
-      painter->drawPixmap(x-mPixmap.width()*0.5, y-mPixmap.height()*0.5, mPixmap);
-      break;
-    }
-    case ssCustom:
-    {
-      QTransform oldTransform = painter->transform();
-      painter->translate(x, y);
-      painter->scale(mSize/6.0, mSize/6.0);
-      painter->drawPath(mCustomPath);
-      painter->setTransform(oldTransform);
-      break;
-    }
-  }
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPLayer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14730,17 +14310,6 @@ void QCPGraph::setLineStyle(LineStyle ls)
 }
 
 /*!
-  Sets the visual appearance of single data points in the plot. If set to \ref QCPScatterStyle::ssNone, no scatter points
-  are drawn (e.g. for line-only-plots with appropriate line style).
-  
-  \see QCPScatterStyle, setLineStyle
-*/
-void QCPGraph::setScatterStyle(const QCPScatterStyle &style)
-{
-  mScatterStyle = style;
-}
-
-/*!
   Sets which kind of error bars (Key Error, Value Error or both) should be drawn on each data
   point. If you set \a errorType to something other than \ref etNone, make sure to actually pass
   error data via the specific setData functions along with the data points (e.g. \ref
@@ -15078,13 +14647,11 @@ void QCPGraph::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (mKeyAxis.data()->range().size() <= 0 || mData->isEmpty()) return;
-  if (mLineStyle == lsNone && mScatterStyle.isNone()) return;
+  if (mLineStyle == lsNone) return;
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
   QVector<QCPData> *scatterData = 0;
-  if (!mScatterStyle.isNone())
-    scatterData = new QVector<QCPData>;
   
   // fill vectors with data appropriate to plot style:
   getPlotData(lineData, scatterData);
@@ -15111,10 +14678,6 @@ void QCPGraph::draw(QCPPainter *painter)
   else if (mLineStyle != lsNone)
     drawLinePlot(painter, lineData); // also step plots can be drawn as a line plot
   
-  // draw scatters:
-  if (scatterData)
-    drawScatterPlot(painter, scatterData);
-  
   // free allocated line and point vectors:
   delete lineData;
   if (scatterData)
@@ -15136,23 +14699,6 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
     applyDefaultAntialiasingHint(painter);
     painter->setPen(mPen);
     painter->drawLine(QLineF(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0)); // +5 on x2 else last segment is missing from dashed/dotted pens
-  }
-  // draw scatter symbol:
-  if (!mScatterStyle.isNone())
-  {
-    applyScattersAntialiasingHint(painter);
-    // scale scatter pixmap if it's too large to fit in legend icon rect:
-    if (mScatterStyle.shape() == QCPScatterStyle::ssPixmap && (mScatterStyle.pixmap().size().width() > rect.width() || mScatterStyle.pixmap().size().height() > rect.height()))
-    {
-      QCPScatterStyle scaledStyle(mScatterStyle);
-      scaledStyle.setPixmap(scaledStyle.pixmap().scaled(rect.size().toSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-      scaledStyle.applyTo(painter, mPen);
-      scaledStyle.drawShape(painter, QRectF(rect).center());
-    } else
-    {
-      mScatterStyle.applyTo(painter, mPen);
-      mScatterStyle.drawShape(painter, QRectF(rect).center());
-    }
   }
 }
 
@@ -15501,53 +15047,6 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
   }
 }
 
-/*! \internal
-  
-  Draws scatter symbols at every data point passed in \a scatterData. scatter symbols are independent
-  of the line style and are always drawn if the scatter style's shape is not \ref
-  QCPScatterStyle::ssNone. Hence, the \a scatterData vector is outputted by all "get(...)PlotData"
-  functions, together with the (line style dependent) line data.
-  
-  \see drawLinePlot, drawImpulsePlot
-*/
-void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const
-{
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  // draw error bars:
-  if (mErrorType != etNone)
-  {
-    applyErrorBarsAntialiasingHint(painter);
-    painter->setPen(mErrorPen);
-    if (keyAxis->orientation() == Qt::Vertical)
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key), scatterData->at(i));
-    } else
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value), scatterData->at(i));
-    }
-  }
-  
-  // draw scatter point symbols:
-  applyScattersAntialiasingHint(painter);
-  mScatterStyle.applyTo(painter, mPen);
-  if (keyAxis->orientation() == Qt::Vertical)
-  {
-    for (int i=0; i<scatterData->size(); ++i)
-      if (!qIsNaN(scatterData->at(i).value))
-        mScatterStyle.drawShape(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key));
-  } else
-  {
-    for (int i=0; i<scatterData->size(); ++i)
-      if (!qIsNaN(scatterData->at(i).value))
-        mScatterStyle.drawShape(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value));
-  }
-}
-
 /*!  \internal
   
   Draws line graphs from the provided data. It connects all points in \a lineData, which was
@@ -15856,7 +15355,6 @@ void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData 
   
   double a, b; // positions of error bar bounds in pixels
   double barWidthHalf = mErrorBarSize*0.5;
-  double skipSymbolMargin = mScatterStyle.size(); // pixels left blank per side, when mErrorBarSkipSymbol is true
 
   if (keyAxis->orientation() == Qt::Vertical)
   {
@@ -15868,13 +15366,7 @@ void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData 
       if (keyAxis->rangeReversed())
         qSwap(a,b);
       // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
+      if (!mErrorBarSkipSymbol)
         painter->drawLine(QLineF(x, a, x, b));
       // draw handles:
       painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
@@ -15887,13 +15379,7 @@ void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData 
       if (valueAxis->rangeReversed())
         qSwap(a,b);
       // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
+      if (!mErrorBarSkipSymbol)
         painter->drawLine(QLineF(a, y, b, y));
       // draw handles:
       painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
@@ -15909,13 +15395,7 @@ void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData 
       if (keyAxis->rangeReversed())
         qSwap(a,b);
       // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
+      if (!mErrorBarSkipSymbol)
         painter->drawLine(QLineF(a, y, b, y));
       // draw handles:
       painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
@@ -15928,13 +15408,7 @@ void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData 
       if (valueAxis->rangeReversed())
         qSwap(a,b);
       // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
+      if (!mErrorBarSkipSymbol)
         painter->drawLine(QLineF(x, a, x, b));
       // draw handles:
       painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
@@ -16401,7 +15875,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
 {
   if (mData->isEmpty())
     return -1.0;
-  if (mLineStyle == lsNone && mScatterStyle.isNone())
+  if (mLineStyle == lsNone)
     return -1.0;
   
   // calculate minimum distances to graph representation:
@@ -16822,7 +16296,6 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mSelectedPen.setColor(QColor(80, 80, 255)); // lighter than Qt::blue of mPen
   mSelectedBrush = mBrush;
   
-  setScatterStyle(QCPScatterStyle());
   setLineStyle(lsLine);
 }
 
@@ -16895,18 +16368,6 @@ void QCPCurve::setData(const QVector<double> &key, const QVector<double> &value)
     newData.value = value[i];
     mData->insertMulti(newData.t, newData);
   }
-}
-
-/*!
-  Sets the visual appearance of single data points in the plot. If set to \ref
-  QCPScatterStyle::ssNone, no scatter points are drawn (e.g. for line-only plots with appropriate
-  line style).
-  
-  \see QCPScatterStyle, setLineStyle
-*/
-void QCPCurve::setScatterStyle(const QCPScatterStyle &style)
-{
-  mScatterStyle = style;
 }
 
 /*!
@@ -17147,10 +16608,6 @@ void QCPCurve::draw(QCPPainter *painter)
     }
   }
   
-  // draw scatters:
-  if (!mScatterStyle.isNone())
-    drawScatterPlot(painter, lineData);
-  
   // free allocated line data:
   delete lineData;
 }
@@ -17171,38 +16628,6 @@ void QCPCurve::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
     painter->setPen(mPen);
     painter->drawLine(QLineF(rect.left(), rect.top()+rect.height()/2.0, rect.right()+5, rect.top()+rect.height()/2.0)); // +5 on x2 else last segment is missing from dashed/dotted pens
   }
-  // draw scatter symbol:
-  if (!mScatterStyle.isNone())
-  {
-    applyScattersAntialiasingHint(painter);
-    // scale scatter pixmap if it's too large to fit in legend icon rect:
-    if (mScatterStyle.shape() == QCPScatterStyle::ssPixmap && (mScatterStyle.pixmap().size().width() > rect.width() || mScatterStyle.pixmap().size().height() > rect.height()))
-    {
-      QCPScatterStyle scaledStyle(mScatterStyle);
-      scaledStyle.setPixmap(scaledStyle.pixmap().scaled(rect.size().toSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-      scaledStyle.applyTo(painter, mPen);
-      scaledStyle.drawShape(painter, QRectF(rect).center());
-    } else
-    {
-      mScatterStyle.applyTo(painter, mPen);
-      mScatterStyle.drawShape(painter, QRectF(rect).center());
-    }
-  }
-}
-
-/*! \internal
-  
-  Draws scatter symbols at every data point passed in \a pointData. scatter symbols are independent of
-  the line style and are always drawn if scatter shape is not \ref QCPScatterStyle::ssNone.
-*/
-void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const
-{
-  // draw scatter point symbols:
-  applyScattersAntialiasingHint(painter);
-  mScatterStyle.applyTo(painter, mPen);
-  for (int i=0; i<pointData->size(); ++i)
-    if (!qIsNaN(pointData->at(i).x()) && !qIsNaN(pointData->at(i).y()))
-      mScatterStyle.drawShape(painter,  pointData->at(i));
 }
 
 /*! \internal
@@ -17226,8 +16651,6 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData) const
   
   // add margins to rect to compensate for stroke width
   double strokeMargin = qMax(qreal(1.0), qreal(mainPen().widthF()*0.75)); // stroke radius + 50% safety
-  if (!mScatterStyle.isNone())
-    strokeMargin = qMax(strokeMargin, mScatterStyle.size());
   double rectLeft = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
   double rectRight = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
   double rectBottom = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)+strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
@@ -19194,7 +18617,6 @@ QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mUpperQuartile(0),
   mMaximum(0)
 {
-  setOutlierStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, 6));
   setWhiskerWidth(0.2);
   setWidth(0.5);
   
@@ -19352,16 +18774,6 @@ void QCPStatisticalBox::setMedianPen(const QPen &pen)
   mMedianPen = pen;
 }
 
-/*!
-  Sets the appearance of the outlier data points.
-  
-  \see setOutliers
-*/
-void QCPStatisticalBox::setOutlierStyle(const QCPScatterStyle &style)
-{
-  mOutlierStyle = style;
-}
-
 /* inherits documentation from base class */
 void QCPStatisticalBox::clearData()
 {
@@ -19424,7 +18836,6 @@ void QCPStatisticalBox::draw(QCPPainter *painter)
   painter->restore();
   
   drawWhiskers(painter);
-  drawOutliers(painter);
 }
 
 /* inherits documentation from base class */
@@ -19490,18 +18901,6 @@ void QCPStatisticalBox::drawWhiskers(QCPPainter *painter) const
   painter->setPen(mWhiskerBarPen);
   painter->drawLine(barMin);
   painter->drawLine(barMax);
-}
-
-/*! \internal
-  
-  Draws the outlier scatter points.
-*/
-void QCPStatisticalBox::drawOutliers(QCPPainter *painter) const
-{
-  applyScattersAntialiasingHint(painter);
-  mOutlierStyle.applyTo(painter, mPen);
-  for (int i=0; i<mOutliers.size(); ++i)
-    mOutlierStyle.drawShape(painter, coordsToPixels(mKey, mOutliers.at(i)));
 }
 
 /* inherits documentation from base class */
