@@ -17,6 +17,7 @@ MarketProfile::MarketProfile(QWidget *parent) :
     xAxis->setAutoTicks(false);
     xAxis->setAutoTickLabels(false);
     _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
+    connect(this, &QCustomPlot::beforeReplot, this, &MarketProfile::updateItems);
 }
 
 //compute the height of the literal as the average daily range divided by MAP_RESOLUTION
@@ -173,10 +174,11 @@ void MarketProfile::displayItem()
     yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
     int oldPointSize = _currentFont.pointSize();
-    int pointSize = computeFontPointSize();
+    int pointSize = computeFontPointSize(_letterHeight);
     _currentFont.setPointSize(pointSize);
 
     int nbChars = 0;
+    QVector<QCPItemText*> bars;
     for (int n = 0; n < _item.size(); ++n) {
         QString row = _item.at(n);
         QCPItemText *barText = new QCPItemText(this);
@@ -184,13 +186,17 @@ void MarketProfile::displayItem()
         if (nbChars < row.size()) {
             nbChars = row.size();
         }
+        bars.push_back(barText);
     }
+    _items[_xPos].bars = bars;
+    _items[_xPos].letterHeight = _letterHeight;
+    _items[_xPos].currentYMin = _currentYMin;
     _currentFont.setPointSize(oldPointSize);
     _tickVector.push_back(_xPos);
     xAxis->setTickVector(_tickVector);
     xAxis->setTickVectorLabels(_tickVectorLabels);
     //new x position
-    _xPos += nbChars*5*_letterHeight;
+    _xPos += nbChars*_letterHeight;
     xAxis->setRange(0, _xPos);
     _item.clear();
 }
@@ -280,6 +286,7 @@ void MarketProfile::clear()
     _tickVectorLabels.clear();
     _tickVectorDates.clear();
     _indicators.clear();
+    _items.clear();
 }
 
 bool MarketProfile::addIndicator(const QString &indicatorName,
@@ -380,4 +387,25 @@ bool MarketProfile::findTickPosition(int &pos, const QDate &currentDate)
         }
     }
     return (pos < _tickVectorDates.size());
+}
+
+void MarketProfile::updateItems()
+{
+    static int oldHeight = 0;
+    if ((oldHeight != height()) && (0 < _yMin) && (0 < _yMax)) {
+        oldHeight = height();
+        //update the font for each item from current market profile
+        QMap<double,Item>::const_iterator it = _items.cbegin();
+        for (; it != _items.cend(); ++it) {
+            double xPos = it.key();
+            Item item = it.value();
+            int pointSize = computeFontPointSize(item.letterHeight);
+            QFont font(_currentFont);
+            font.setPointSize(pointSize);
+            for (int n = 0; n < item.bars.size(); ++n) {
+                item.bars[n]->position->setCoords(xPos, item.currentYMin+(n+1)*item.letterHeight);
+                item.bars[n]->setFont(font);
+            }
+        }
+    }
 }

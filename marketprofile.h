@@ -37,6 +37,8 @@ public:
     bool hideIndicator(const QString &indicatorName) {
         return updateIndicator(indicatorName, false);
     }
+private slots:
+    void updateItems();
 private:
     enum {MAP_RESOLUTION = 10};
     void process(const QVector<double> &upper, const QVector<double> &lower,
@@ -80,8 +82,9 @@ private:
     bool setupItemText(QCPItemText *itemText, const QString &text, double x, double y);
     bool updateIndicator(const QString &indicatorName, bool show = true);
     bool findTickPosition(int &pos, const QDate &currentDate);
-    int computeFontPointSize(double percentage = 0.5) const {
-        return qFloor(percentage*height()/((_currentYMax-_currentYMin)/_letterHeight));
+    int computeFontPointSize(double letterHeight) const {
+        const double out = letterHeight*height()/(_yMax-_yMin);
+        return qFloor(out);
     }
 
     double _letterHeight;
@@ -101,6 +104,12 @@ private:
     QMap<QString, QCPItemText*> _indicators;
     QColor _literalColor;
     QColor _labelColor;
+    struct Item {
+        double letterHeight;
+        double currentYMin;
+        QVector<QCPItemText*> bars;
+    };
+    QMap<double,Item> _items;
 };
 
 #endif
