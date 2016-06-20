@@ -52,6 +52,7 @@ void MarketProfile::initLiteralMatrix(const QVector<double> &upper,
         _yMax = max;
     }
     _currentYMin = min;
+    _currentYMax = max;
 
     _literalMatrix.resize(cols);
     for (int c = 0; c < cols; ++c) {
@@ -163,6 +164,7 @@ bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &d
     if (!upper.isEmpty()) {
         process(upper, lower, currentDate);
     }
+    replot();
     return true;
 }
 
@@ -170,9 +172,10 @@ void MarketProfile::displayItem()
 {
     yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
+    int pointSize = computeFontPointSize();
     int nbChars = 0;
     for (int n = 0; n < _item.size(); ++n) {
-        _currentFont.setPointSize(10);
+        _currentFont.setPointSize(pointSize);
         QString row = _item.at(n);
         QCPItemText *barText = new QCPItemText(this);
         setupItemText(barText, row, _xPos, _currentYMin+(n+1)*_letterHeight);
@@ -264,6 +267,7 @@ void MarketProfile::clear()
     _item.clear();
     _xPos = 0;
     _currentYMin = -1;
+    _currentYMax = -1;
     _tickVector.clear();
     _tickVectorLabels.clear();
     _tickVectorDates.clear();

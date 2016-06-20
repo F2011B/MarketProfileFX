@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
+     w.show();//do this in order to get correct information about widget size
 
     QMap<QDateTime, MarketProfile::Data> data;
     MarketProfile *profile = NULL;
@@ -101,8 +102,6 @@ int main(int argc, char *argv[])
             qCritical() << "Cannot remove indicator";
         }
     }
-
-    w.show();
 
     return a.exec();
 }

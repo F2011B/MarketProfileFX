@@ -80,6 +80,9 @@ private:
     bool setupItemText(QCPItemText *itemText, const QString &text, double x, double y);
     bool updateIndicator(const QString &indicatorName, bool show = true);
     bool findTickPosition(int &pos, const QDate &currentDate);
+    int computeFontPointSize(double percentage = 0.5) const {
+        return qFloor(percentage*height()/((_currentYMax-_currentYMin)/_letterHeight));
+    }
 
     double _letterHeight;
     char _currentLiteral;
@@ -91,6 +94,7 @@ private:
     double _xPos;
     QFont _currentFont;
     double _currentYMin;
+    double _currentYMax;
     QVector<double> _tickVector;
     QVector<QString> _tickVectorLabels;
     QVector<QDate> _tickVectorDates;
