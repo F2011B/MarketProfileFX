@@ -101,6 +101,11 @@ int main(int argc, char *argv[])
         if (!rc) {
             qCritical() << "Cannot remove indicator";
         }
+        //add the indicator for testing purposes
+        rc = profile->addIndicator(indicatorName, position);
+        if (!rc) {
+            qCritical() << "Cannot add indicator";
+        }
     }
 
     return a.exec();
