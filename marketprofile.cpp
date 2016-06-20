@@ -172,10 +172,12 @@ void MarketProfile::displayItem()
 {
     yAxis->setRange(_yMin-_letterHeight, _yMax+_letterHeight);
 
+    int oldPointSize = _currentFont.pointSize();
     int pointSize = computeFontPointSize();
+    _currentFont.setPointSize(pointSize);
+
     int nbChars = 0;
     for (int n = 0; n < _item.size(); ++n) {
-        _currentFont.setPointSize(pointSize);
         QString row = _item.at(n);
         QCPItemText *barText = new QCPItemText(this);
         setupItemText(barText, row, _xPos, _currentYMin+(n+1)*_letterHeight);
@@ -183,6 +185,7 @@ void MarketProfile::displayItem()
             nbChars = row.size();
         }
     }
+    _currentFont.setPointSize(oldPointSize);
     _tickVector.push_back(_xPos);
     xAxis->setTickVector(_tickVector);
     xAxis->setTickVectorLabels(_tickVectorLabels);
@@ -212,6 +215,7 @@ bool MarketProfile::setBackgroudColor(int red, int green, int blue)
     QBrush brush(Qt::SolidPattern);
     brush.setColor(QColor(red, green, blue));
     QCustomPlot::setBackground(brush);
+    replot();
     return true;
 }
 
@@ -221,6 +225,7 @@ bool MarketProfile::setLiteralColor(int red, int green, int blue)
         return false;
     }
     _literalColor.setRgb(red, green, blue);
+    replot();
     return true;
 }
 
@@ -232,6 +237,7 @@ bool MarketProfile::setXLabel(const QString &label)
     xAxis->setLabelColor(_labelColor);
     xAxis->setTickLabelColor(_labelColor);
     xAxis->setLabel(label);
+    replot();
     return true;
 }
 
@@ -243,6 +249,7 @@ bool MarketProfile::setYLabel(const QString &label)
     yAxis->setLabelColor(_labelColor);
     yAxis->setTickLabelColor(_labelColor);
     yAxis->setLabel(label);
+    replot();
     return true;
 }
 
@@ -254,6 +261,7 @@ bool MarketProfile::setLabelColor(int red, int green, int blue)
     _labelColor.setRgb(red, green, blue);
     setXLabel(xAxis->label());
     setYLabel(yAxis->label());
+    replot();
     return true;
 }
 
@@ -294,8 +302,12 @@ bool MarketProfile::addIndicator(const QString &indicatorName,
     //the position has been found
     QCPItemText *ind = new QCPItemText(this);
     _indicators[indicatorName] = ind;
-    return setupItemText(ind, indicatorName, _tickVector.at(pos),
+    rc = setupItemText(ind, indicatorName, _tickVector.at(pos),
                          position[key]);
+    if (rc) {
+        replot();
+    }
+    return rc;
 }
 
 bool MarketProfile::updateIndicator(const QString &indicatorName,
@@ -319,6 +331,7 @@ bool MarketProfile::updateIndicator(const QString &indicatorName,
     //update indicator
     QCPItemText *ind = _indicators[indicatorName];
     ind->position->setCoords(_tickVector.at(pos), position[key]);
+    replot();
     return true;
 }
 
@@ -334,6 +347,7 @@ bool MarketProfile::updateIndicator(const QString &indicatorName, bool show)
     //show/hide indicator
     QCPItemText *ind = _indicators[indicatorName];
     ind->setVisible(show);
+    replot();
     return true;
 }
 
@@ -353,6 +367,7 @@ bool MarketProfile::removeIndicator(const QString &indicatorName)
         rc = removeItem(ind);
     }
     _indicators.remove(indicatorName);
+    replot();
     return rc;
 }
 
