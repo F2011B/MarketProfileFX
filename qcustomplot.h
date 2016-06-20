@@ -1818,79 +1818,6 @@ protected:
   friend class QCPAxisRect;
 };
 
-
-class QCP_LIB_DECL QCPColorGradient
-{
-  Q_GADGET
-public:
-  /*!
-    Defines the color spaces in which color interpolation between gradient stops can be performed.
-    
-    \see setColorInterpolation
-  */
-  enum ColorInterpolation { ciRGB  ///< Color channels red, green and blue are linearly interpolated
-                            ,ciHSV ///< Color channels hue, saturation and value are linearly interpolated (The hue is interpolated over the shortest angle distance)
-                          };
-  Q_ENUMS(ColorInterpolation)
-  
-  /*!
-    Defines the available presets that can be loaded with \ref loadPreset. See the documentation
-    there for an image of the presets.
-  */
-  enum GradientPreset { gpGrayscale  ///< Continuous lightness from black to white (suited for non-biased data representation)
-                        ,gpHot       ///< Continuous lightness from black over firey colors to white (suited for non-biased data representation)
-                        ,gpCold      ///< Continuous lightness from black over icey colors to white (suited for non-biased data representation)
-                        ,gpNight     ///< Continuous lightness from black over weak blueish colors to white (suited for non-biased data representation)
-                        ,gpCandy     ///< Blue over pink to white
-                        ,gpGeography ///< Colors suitable to represent different elevations on geographical maps
-                        ,gpIon       ///< Half hue spectrum from black over purple to blue and finally green (creates banding illusion but allows more precise magnitude estimates)
-                        ,gpThermal   ///< Colors suitable for thermal imaging, ranging from dark blue over purple to orange, yellow and white
-                        ,gpPolar     ///< Colors suitable to emphasize polarity around the center, with blue for negative, black in the middle and red for positive values
-                        ,gpSpectrum  ///< An approximation of the visible light spectrum (creates banding illusion but allows more precise magnitude estimates)
-                        ,gpJet       ///< Hue variation similar to a spectrum, often used in numerical visualization (creates banding illusion but allows more precise magnitude estimates)
-                        ,gpHues      ///< Full hue cycle, with highest and lowest color red (suitable for periodic data, such as angles and phases, see \ref setPeriodic)
-                      };
-  Q_ENUMS(GradientPreset)
-  
-  QCPColorGradient(GradientPreset preset=gpCold);
-  bool operator==(const QCPColorGradient &other) const;
-  bool operator!=(const QCPColorGradient &other) const { return !(*this == other); }
-  
-  // getters:
-  int levelCount() const { return mLevelCount; }
-  QMap<double, QColor> colorStops() const { return mColorStops; }
-  ColorInterpolation colorInterpolation() const { return mColorInterpolation; }
-  bool periodic() const { return mPeriodic; }
-  
-  // setters:
-  void setLevelCount(int n);
-  void setColorStops(const QMap<double, QColor> &colorStops);
-  void setColorStopAt(double position, const QColor &color);
-  void setColorInterpolation(ColorInterpolation interpolation);
-  void setPeriodic(bool enabled);
-  
-  // non-property methods:
-  void colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor=1, bool logarithmic=false);
-  QRgb color(double position, const QCPRange &range, bool logarithmic=false);
-  void loadPreset(GradientPreset preset);
-  void clearColorStops();
-  QCPColorGradient inverted() const;
-  
-protected:
-  void updateColorBuffer();
-  
-  // property members:
-  int mLevelCount;
-  QMap<double, QColor> mColorStops;
-  ColorInterpolation mColorInterpolation;
-  bool mPeriodic;
-  
-  // non-property members:
-  QVector<QRgb> mColorBuffer;
-  bool mColorBufferInvalidated;
-};
-
-
 class QCP_LIB_DECL QCPAxisRect : public QCPLayoutElement
 {
   Q_OBJECT
@@ -2279,108 +2206,6 @@ protected:
 private:
   Q_DISABLE_COPY(QCPPlotTitle)
 };
-
-
-class QCPColorScaleAxisRectPrivate : public QCPAxisRect
-{
-  Q_OBJECT
-public:
-  explicit QCPColorScaleAxisRectPrivate(QCPColorScale *parentColorScale);
-protected:
-  QCPColorScale *mParentColorScale;
-  QImage mGradientImage;
-  bool mGradientImageInvalidated;
-  // re-using some methods of QCPAxisRect to make them available to friend class QCPColorScale
-  using QCPAxisRect::calculateAutoMargin;
-  using QCPAxisRect::mousePressEvent;
-  using QCPAxisRect::mouseMoveEvent;
-  using QCPAxisRect::mouseReleaseEvent;
-  using QCPAxisRect::wheelEvent;
-  using QCPAxisRect::update;
-  virtual void draw(QCPPainter *painter);
-  void updateGradientImage();
-  Q_SLOT void axisSelectionChanged(QCPAxis::SelectableParts selectedParts);
-  Q_SLOT void axisSelectableChanged(QCPAxis::SelectableParts selectableParts);
-  friend class QCPColorScale;
-};
-
-
-class QCP_LIB_DECL QCPColorScale : public QCPLayoutElement
-{
-  Q_OBJECT
-  /// \cond INCLUDE_QPROPERTIES
-  Q_PROPERTY(QCPAxis::AxisType type READ type WRITE setType)
-  Q_PROPERTY(QCPRange dataRange READ dataRange WRITE setDataRange NOTIFY dataRangeChanged)
-  Q_PROPERTY(QCPAxis::ScaleType dataScaleType READ dataScaleType WRITE setDataScaleType NOTIFY dataScaleTypeChanged)
-  Q_PROPERTY(QCPColorGradient gradient READ gradient WRITE setGradient NOTIFY gradientChanged)
-  Q_PROPERTY(QString label READ label WRITE setLabel)
-  Q_PROPERTY(int barWidth READ barWidth WRITE setBarWidth)
-  Q_PROPERTY(bool rangeDrag READ rangeDrag WRITE setRangeDrag)
-  Q_PROPERTY(bool rangeZoom READ rangeZoom WRITE setRangeZoom)
-  /// \endcond
-public:
-  explicit QCPColorScale(QCustomPlot *parentPlot);
-  virtual ~QCPColorScale();
-  
-  // getters:
-  QCPAxis *axis() const { return mColorAxis.data(); }
-  QCPAxis::AxisType type() const { return mType; }
-  QCPRange dataRange() const { return mDataRange; }
-  QCPAxis::ScaleType dataScaleType() const { return mDataScaleType; }
-  QCPColorGradient gradient() const { return mGradient; }
-  QString label() const;
-  int barWidth () const { return mBarWidth; }
-  bool rangeDrag() const;
-  bool rangeZoom() const;
-  
-  // setters:
-  void setType(QCPAxis::AxisType type);
-  Q_SLOT void setDataRange(const QCPRange &dataRange);
-  Q_SLOT void setDataScaleType(QCPAxis::ScaleType scaleType);
-  Q_SLOT void setGradient(const QCPColorGradient &gradient);
-  void setLabel(const QString &str);
-  void setBarWidth(int width);
-  void setRangeDrag(bool enabled);
-  void setRangeZoom(bool enabled);
-  
-  // non-property methods:
-  QList<QCPColorMap*> colorMaps() const;
-  void rescaleDataRange(bool onlyVisibleMaps);
-  
-  // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
-  
-signals:
-  void dataRangeChanged(QCPRange newRange);
-  void dataScaleTypeChanged(QCPAxis::ScaleType scaleType);
-  void gradientChanged(QCPColorGradient newGradient);
-
-protected:
-  // property members:
-  QCPAxis::AxisType mType;
-  QCPRange mDataRange;
-  QCPAxis::ScaleType mDataScaleType;
-  QCPColorGradient mGradient;
-  int mBarWidth;
-  
-  // non-property members:
-  QPointer<QCPColorScaleAxisRectPrivate> mAxisRect;
-  QPointer<QCPAxis> mColorAxis;
-  
-  // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  // events:
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
-  
-private:
-  Q_DISABLE_COPY(QCPColorScale)
-  
-  friend class QCPColorScaleAxisRectPrivate;
-};
-
 
 /*! \file */
 
@@ -2954,10 +2779,8 @@ class QCP_LIB_DECL QCPColorMap : public QCPAbstractPlottable
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(QCPRange dataRange READ dataRange WRITE setDataRange NOTIFY dataRangeChanged)
   Q_PROPERTY(QCPAxis::ScaleType dataScaleType READ dataScaleType WRITE setDataScaleType NOTIFY dataScaleTypeChanged)
-  Q_PROPERTY(QCPColorGradient gradient READ gradient WRITE setGradient NOTIFY gradientChanged)
   Q_PROPERTY(bool interpolate READ interpolate WRITE setInterpolate)
   Q_PROPERTY(bool tightBoundary READ tightBoundary WRITE setTightBoundary)
-  Q_PROPERTY(QCPColorScale* colorScale READ colorScale WRITE setColorScale)
   /// \endcond
 public:
   explicit QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis);
@@ -2969,17 +2792,13 @@ public:
   QCPAxis::ScaleType dataScaleType() const { return mDataScaleType; }
   bool interpolate() const { return mInterpolate; }
   bool tightBoundary() const { return mTightBoundary; }
-  QCPColorGradient gradient() const { return mGradient; }
-  QCPColorScale *colorScale() const { return mColorScale.data(); }
   
   // setters:
   void setData(QCPColorMapData *data, bool copy=false);
   Q_SLOT void setDataRange(const QCPRange &dataRange);
   Q_SLOT void setDataScaleType(QCPAxis::ScaleType scaleType);
-  Q_SLOT void setGradient(const QCPColorGradient &gradient);
   void setInterpolate(bool enabled);
   void setTightBoundary(bool enabled);
-  void setColorScale(QCPColorScale *colorScale);
   
   // non-property methods:
   void rescaleDataRange(bool recalculateDataBounds=false);
@@ -2992,17 +2811,14 @@ public:
 signals:
   void dataRangeChanged(QCPRange newRange);
   void dataScaleTypeChanged(QCPAxis::ScaleType scaleType);
-  void gradientChanged(QCPColorGradient newGradient);
   
 protected:
   // property members:
   QCPRange mDataRange;
   QCPAxis::ScaleType mDataScaleType;
   QCPColorMapData *mMapData;
-  QCPColorGradient mGradient;
   bool mInterpolate;
   bool mTightBoundary;
-  QPointer<QCPColorScale> mColorScale;
   // non-property members:
   QImage mMapImage, mUndersampledMapImage;
   QPixmap mLegendIcon;
