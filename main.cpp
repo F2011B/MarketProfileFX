@@ -8,7 +8,8 @@
 static
 int generateData(QMap<QDateTime, MarketProfile::Data> &data, int maxLineNo = -1)
 {
-    QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
+    //QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 30 Minutes.txt";
+    QString filename = "/Users/bogdan/projects/draw_financial_data/DUK 15 Minutes.txt";
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << file.errorString();
