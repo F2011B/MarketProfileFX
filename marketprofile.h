@@ -37,11 +37,14 @@ public:
     bool hideIndicator(const QString &indicatorName) {
         return updateIndicator(indicatorName, false);
     }
+    void setMapResolution(int mapResolution) {
+        _mapResolution = mapResolution;
+    }
 private slots:
     void updateItems();
     void onMouseWheel(QWheelEvent *event);
 private:
-    enum {MAP_RESOLUTION = 10};
+    enum {MAP_RESOLUTION = 5};
     void process(const QVector<double> &upper, const QVector<double> &lower,
                     const QDate &currentDate, bool dump = false) {
         _tickVectorLabels.push_back(currentDate.toString("MMM d yyyy"));
@@ -112,6 +115,7 @@ private:
         QVector<QCPItemText*> bars;
     };
     QMap<double,Item> _items;
+    int _mapResolution;
 };
 
 #endif

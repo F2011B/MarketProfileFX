@@ -6,7 +6,8 @@
 const char MarketProfile::_emptyChar = ' ';
 
 MarketProfile::MarketProfile(QWidget *parent) :
-  QCustomPlot(parent)
+  QCustomPlot(parent),
+  _mapResolution(MAP_RESOLUTION)
 {
     clear();
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
@@ -21,7 +22,7 @@ MarketProfile::MarketProfile(QWidget *parent) :
     connect(this, &QCustomPlot::mouseWheel, this, &MarketProfile::onMouseWheel);
 }
 
-//compute the height of the literal as the average daily range divided by MAP_RESOLUTION
+//compute the height of the literal as the average daily range divided by _mapResolution
 void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
                                          const QVector<double> &lower)
 {
@@ -29,7 +30,7 @@ void MarketProfile::computeLiteralHeight(const QVector<double> &upper,
     for (int i = 0; i < upper.length(); ++i) {
         _letterHeight += (upper.at(i)-lower.at(i));
     }
-    _letterHeight /= (upper.length()*MAP_RESOLUTION);
+    _letterHeight /= (upper.length()*_mapResolution);
     _currentLiteral = 'A';
 }
 
