@@ -23,7 +23,8 @@ $ANDROID_QT_ROOT/bin/androiddeployqt --input "android-deployment-settings.json" 
 #rename APK using the version number read from file
 FILE="../android-build/bin/QtApp-release.apk"
 if [ -f $FILE ]; then
-  VER_NO=$(cat "version")
+  NUM_COMMITS=`git rev-list HEAD --count`
+  VER_NO="0."$NUM_COMMITS
   cp $FILE "MarketProfileForex_v$VER_NO.apk"
 fi
 
