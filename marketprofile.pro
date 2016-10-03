@@ -13,11 +13,11 @@ TEMPLATE = app
 
 #CONFIG += debug
 
-SOURCES += main.cpp\
-        mainwindow.cpp\
-        marketprofile.cpp\
-        qcustomplot.cpp
+SOURCES += src/main.cpp\
+        src/mainwindow.cpp\
+        src/marketprofile.cpp\
+        src/qcustomplot.cpp
 
-HEADERS  += mainwindow.h\
-        marketprofile.h\
-        qcustomplot.h
+HEADERS  += src/mainwindow.h\
+        src/marketprofile.h\
+        src/qcustomplot.h
