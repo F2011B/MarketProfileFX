@@ -16,4 +16,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     verticalLayout->addWidget(_profile);
     setCentralWidget(centralWidget);
+    setGeometry(QApplication::desktop()->availableGeometry());
+}
+
+void MainWindow::resizeEvent(QResizeEvent */*event*/)
+{
+    setGeometry(QApplication::desktop()->availableGeometry());
 }

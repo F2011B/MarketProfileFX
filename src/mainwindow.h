@@ -15,7 +15,8 @@ public:
     MarketProfile* marketProfile() {
         return _profile;
     }
-
+protected:
+    void resizeEvent(QResizeEvent *event);
 private:
     MarketProfile *_profile;
 };
