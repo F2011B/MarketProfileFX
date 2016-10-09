@@ -9,13 +9,12 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    resize(800, 600);
     QWidget *centralWidget= new QWidget(this);
     QGridLayout *gridLayout= new QGridLayout(centralWidget);
 
     //update button
     _updateButton = new QPushButton(tr("Update"), centralWidget);
-    connect(_updateButton, SIGNAL(clicked()), this, SLOT(onUpdate()));
+    connect(_updateButton, &QPushButton::clicked, this, &MainWindow::onUpdate);
     gridLayout->addWidget(_updateButton, 0, 0, 1, 1, Qt::AlignHCenter);
 
     //symbol combo
@@ -36,13 +35,14 @@ MainWindow::MainWindow(QWidget *parent)
     _profile->setYLabel("Price");
     _profile->setLabelColor(255, 0, 255);
     gridLayout->addWidget(_profile, 1, 0, 1, 3);
-    setCentralWidget(centralWidget);
-    setGeometry(QApplication::desktop()->availableGeometry());
 
     //REST handler
     _restHandler = new RestHandler(this);
-    connect(_restHandler, SIGNAL(finished(const QVariant&)), this,
-            SLOT(onRestRequestFinished(const QVariant&)));
+    connect(_restHandler, &RestHandler::finished, this,
+            &MainWindow::onRestRequestFinished);
+
+    setCentralWidget(centralWidget);
+    setGeometry(QApplication::desktop()->availableGeometry());
 }
 
 void MainWindow::resizeEvent(QResizeEvent */*event*/)
