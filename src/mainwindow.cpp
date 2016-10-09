@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::resizeEvent(QResizeEvent */*event*/)
 {
     setGeometry(QApplication::desktop()->availableGeometry());
+    _profile->replot();//recompute letter heights
 }
 
 void MainWindow::onUpdate()
