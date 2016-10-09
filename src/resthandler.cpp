@@ -8,7 +8,8 @@
 #include "resthandler.h"
 #include "config.h"
 
-RestHandler::RestHandler() : _http(new QNetworkAccessManager(this))
+RestHandler::RestHandler(QObject *parent) : QObject(parent),
+    _http(new QNetworkAccessManager(this))
 {
     connect(_http, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));
 }

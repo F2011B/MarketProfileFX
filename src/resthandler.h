@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QMutex>
+#include "config.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -11,7 +12,7 @@ class QNetworkReply;
 class RestHandler : public QObject {
     Q_OBJECT
 public:
-    RestHandler();
+    RestHandler(QObject *parent);
     ~RestHandler();
     /*!
      * \brief Send REST API request to server. The request is asynchronous,
@@ -21,8 +22,9 @@ public:
      * \param granularity
      * \return true is the operation is successful, false otherwise
      */
-    bool sendRequest(const QString &instrument, int count,
-                     const QString &granularity = "M30");
+    bool sendRequest(const QString &instrument,
+                     int count = CANDLE_COUNT,
+                     const QString &granularity = CANDLE_GRANULARITY);
     /*! Abort all pending requests.
      */
     void abortRequests();
