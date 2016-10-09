@@ -117,6 +117,7 @@ private:
     };
     QMap<double,Item> _items;
     int _mapResolution;
+    int _oldHeight;
 };
 
 #endif
