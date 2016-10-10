@@ -87,7 +87,8 @@ private:
     bool updateIndicator(const QString &indicatorName, bool show = true);
     bool findTickPosition(int &pos, const QDate &currentDate);
     int computeFontPointSize(double letterHeight, double lower, double upper) const {
-        const double out = letterHeight*height()/(upper-lower);
+        const int widgetHeight = height();
+        const double out = letterHeight*widgetHeight/(upper-lower);
         return qFloor(out);
     }
     void updateItemsInternal(double lower, double upper);
@@ -116,6 +117,7 @@ private:
     };
     QMap<double,Item> _items;
     int _mapResolution;
+    int _oldHeight;
 };
 
 #endif

@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets printsupport
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets printsupport network
 
 TARGET = marketprofile
 TEMPLATE = app
@@ -16,8 +14,13 @@ TEMPLATE = app
 SOURCES += src/main.cpp\
         src/mainwindow.cpp\
         src/marketprofile.cpp\
-        src/qcustomplot.cpp
+        src/qcustomplot.cpp\
+        src/resthandler.cpp\
+        src/datamanager.cpp
 
 HEADERS  += src/mainwindow.h\
         src/marketprofile.h\
-        src/qcustomplot.h
+        src/qcustomplot.h\
+        src/resthandler.h\
+        src/datamanager.h\
+        src/config.h

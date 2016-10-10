@@ -289,6 +289,7 @@ void MarketProfile::clear()
     _tickVectorDates.clear();
     _indicators.clear();
     _items.clear();
+    _oldHeight = 0;
 }
 
 bool MarketProfile::addIndicator(const QString &indicatorName,
@@ -393,9 +394,8 @@ bool MarketProfile::findTickPosition(int &pos, const QDate &currentDate)
 
 void MarketProfile::updateItems()
 {
-    static int oldHeight = 0;
-    if ((oldHeight != height()) && (0 < _yMin) && (0 < _yMax)) {
-        oldHeight = height();
+    if ((_oldHeight != height()) && (0 < _yMin) && (0 < _yMax)) {
+        _oldHeight = height();
         //update the font for each item from current market profile
         updateItemsInternal(_yMin, _yMax);
     }
