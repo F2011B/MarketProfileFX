@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets printsupport network
+QT       += core gui widgets printsupport network sql
 
 TARGET = marketprofile
 TEMPLATE = app
