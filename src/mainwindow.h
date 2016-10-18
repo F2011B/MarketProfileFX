@@ -19,13 +19,14 @@ public:
     MarketProfile* marketProfile() {
         return _profile;
     }
+    static void showDialog(const QString &msg,
+                           QMessageBox::Icon icon = QMessageBox::Critical);
 protected:
     void resizeEvent(QResizeEvent *event);
 private slots:
     void onUpdate();
     void onRestRequestFinished(const QVariant &content);
 private:
-    void showDialog(const QString &msg, QMessageBox::Icon icon = QMessageBox::Critical);
     bool parseCandle(QDateTime &dateTime, MarketProfile::Data &profileData,
                      bool &complete, const QJsonObject &item);
     MarketProfile *_profile;

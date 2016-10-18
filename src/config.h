@@ -16,4 +16,6 @@
 #define VOLUME_NAME "volume"
 #define COMPLETE_NAME "complete"
 
+#define OBSOLETE_DATA_THRESHOLD_DAYS 7
+
 #endif
