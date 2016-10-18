@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "resthandler.h"
+#include "datamanager.h"
 #include "config.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -41,6 +42,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_restHandler, &RestHandler::finished, this,
             &MainWindow::onRestRequestFinished);
 
+    //Data manager
+    _dataManager = new DataManager();
+    QMap<QDateTime, MarketProfile::Data> inputData;
+    _dataManager->load(_symbolCombo->currentText(), inputData);
+    displayData(inputData);//show data stored in database
+    onUpdate();//send request for new data
+
     setCentralWidget(centralWidget);
     setGeometry(QApplication::desktop()->availableGeometry());
 }
@@ -53,8 +61,8 @@ void MainWindow::resizeEvent(QResizeEvent */*event*/)
 
 void MainWindow::onUpdate()
 {
-    qDebug() << "Sending request";
-    bool rc = _restHandler->sendRequest(_symbolCombo->currentText());
+    qDebug() << "Sending request from " << _from;
+    bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
     if (!rc)
     {
         qCritical() << "Cannot send request";
@@ -86,11 +94,11 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
     QJsonArray candles = data.value(CANDLES_NAME).toArray();
     qDebug() << "Got" << candles.size() << "candles";
     if (candles.isEmpty()) {
-        showDialog(tr("No data received"), QMessageBox::Warning);
+        qDebug() << "No data received";
         return;
     }
-    QMap<QDateTime, MarketProfile::Data> inputData;
     bool rc = false;
+    QMap<QDateTime, MarketProfile::Data> inputData;
     for (int i = 0; i < candles.size(); ++i) {
         QJsonObject item = candles.at(i).toObject();
         QDateTime dateTime;
@@ -107,16 +115,34 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
         }
         inputData[dateTime] = profileData;
     }
-    if (inputData.isEmpty()) {
-        showDialog(tr("Cannot parse reply"));
-        return;
-    }
+    displayData(inputData);
 
-    //display data
-    rc = _profile->loadTimeSeries(inputData);
-    if (!rc) {
-        qCritical() << "Cannot load data";
-        showDialog(tr("Cannot load data"));
+    //save data
+    _dataManager->save(_symbolCombo->currentText(), inputData);
+}
+
+void MainWindow::displayData(QMap<QDateTime, MarketProfile::Data> &inputData)
+{
+    if (!inputData.isEmpty()) {
+        bool rc = _profile->updateTimeSeries(inputData);
+        if (!rc) {
+            qCritical() << "Cannot load data";
+            showDialog(tr("Cannot load data"));
+        }
+        computeFrom(inputData.lastKey());
+    } else {
+        computeFrom(QDateTime());
+    }
+}
+
+void MainWindow::computeFrom(const QDateTime &latest)
+{
+    if (latest.isValid()) {
+        _from = latest;
+        qDebug() << "Using old data";
+    } else {
+        _from = QDateTime::currentDateTime().addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
+        qDebug() << "No old data available";
     }
 }
 

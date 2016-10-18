@@ -3,8 +3,7 @@
 
 #define APP_NAME "MarketProfile"
 
-#define OANDA_URL "https://api-fxtrade.oanda.com/v1/candles?instrument=%1&count=%2&granularity=%3&candleFormat=midpoint"
-#define CANDLE_COUNT 100
+#define OANDA_URL "https://api-fxtrade.oanda.com/v1/candles?instrument=%1&start=%2&granularity=%3&candleFormat=midpoint"
 #define CANDLE_GRANULARITY "M30"
 
 #define CANDLES_NAME "candles"

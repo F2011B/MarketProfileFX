@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QMutex>
+#include <QDateTime>
 #include "config.h"
 
 class QNetworkAccessManager;
@@ -18,12 +19,12 @@ public:
      * \brief Send REST API request to server. The request is asynchronous,
      * one must connect to finished() signal in order to get the result.
      * \param instrument
-     * \param count
+     * \param from
      * \param granularity
      * \return true is the operation is successful, false otherwise
      */
     bool sendRequest(const QString &instrument,
-                     int count = CANDLE_COUNT,
+                     const QDateTime &from,
                      const QString &granularity = CANDLE_GRANULARITY);
     /*! Abort all pending requests.
      */
