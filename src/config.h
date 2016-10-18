@@ -2,6 +2,7 @@
 #define CONFIG_H_
 
 #define APP_NAME "MarketProfile"
+#define ORG_NAME "Franz Blaim"
 
 #define OANDA_URL "https://api-fxtrade.oanda.com/v1/candles?instrument=%1&start=%2&granularity=%3&candleFormat=midpoint"
 #define CANDLE_GRANULARITY "M30"

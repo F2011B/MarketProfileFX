@@ -16,7 +16,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
-    ~MainWindow() {}
+    ~MainWindow();
     MarketProfile* marketProfile() {
         return _profile;
     }

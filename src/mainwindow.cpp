@@ -5,6 +5,7 @@
 #include "mainwindow.h"
 #include "resthandler.h"
 #include "datamanager.h"
+#include "settingsmanager.h"
 #include "config.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -25,7 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList symbols;
     symbols << "EUR_USD" << "WTICO_USD" << "XAU_USD" << "DE30_EUR" << "SPX500_USD";
     _symbolCombo->addItems(symbols);
-    _symbolCombo->setCurrentIndex(0);
+    int currentIndex = 0;
+    SettingsManager::readCurrentSymbolIndex(currentIndex);
+    _symbolCombo->setCurrentIndex(currentIndex);
     gridLayout->addWidget(_symbolCombo, 0, 2, 1, 1, Qt::AlignLeft);
 
     //main plot
@@ -51,6 +54,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     setCentralWidget(centralWidget);
     setGeometry(QApplication::desktop()->availableGeometry());
+}
+
+MainWindow::~MainWindow()
+{
+    if (NULL != _symbolCombo) {
+        const int currentIndex = _symbolCombo->currentIndex();
+        SettingsManager::writeCurrentSymbolIndex(currentIndex);
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent */*event*/)
