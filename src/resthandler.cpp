@@ -22,12 +22,10 @@ RestHandler::~RestHandler()
 bool RestHandler::sendRequest(const QString &instrument, const QDateTime &from,
                               const QString &granularity)
 {
-    qDebug() << "Sending request" << instrument << from << granularity;
-
-    uint unixtime = from.toTime_t();
-    QString url = QString(OANDA_URL).arg(instrument).arg(unixtime).arg(granularity);
+    QString rfcTime = from.toString("yyyy-MM-ddThh:mm:ssZ");
+    QString url = QString(OANDA_URL).arg(instrument).arg(rfcTime.replace(':', "%3A")).arg(granularity);
+    qDebug() << "Sending request" << url;
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "X-Accept-Datetime-Format: UNIX" );
     QSslConfiguration config = request.sslConfiguration();
     config.setProtocol(QSsl::TlsV1_0);
     request.setSslConfiguration(config);
