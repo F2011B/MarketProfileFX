@@ -8,6 +8,7 @@
 class QPushButton;
 class QComboBox;
 class RestHandler;
+class DataManager;
 
 class MainWindow : public QMainWindow
 {
@@ -15,7 +16,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
-    ~MainWindow() {}
+    ~MainWindow();
     MarketProfile* marketProfile() {
         return _profile;
     }
@@ -25,14 +26,18 @@ protected:
     void resizeEvent(QResizeEvent *event);
 private slots:
     void onUpdate();
+    void computeFrom(const QDateTime &latest);
     void onRestRequestFinished(const QVariant &content);
 private:
     bool parseCandle(QDateTime &dateTime, MarketProfile::Data &profileData,
                      bool &complete, const QJsonObject &item);
+    void displayData(QMap<QDateTime, MarketProfile::Data> &inputData);
     MarketProfile *_profile;
     QPushButton *_updateButton;
     QComboBox *_symbolCombo;
     RestHandler *_restHandler;
+    DataManager *_dataManager;
+    QDateTime _from;
 };
 
 #endif // MAINWINDOW_H

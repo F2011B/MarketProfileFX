@@ -16,11 +16,13 @@ SOURCES += src/main.cpp\
         src/marketprofile.cpp\
         src/qcustomplot.cpp\
         src/resthandler.cpp\
-        src/datamanager.cpp
+        src/datamanager.cpp\
+        src/settingsmanager.cpp
 
 HEADERS  += src/mainwindow.h\
         src/marketprofile.h\
         src/qcustomplot.h\
         src/resthandler.h\
         src/datamanager.h\
+        src/settingsmanager.h\
         src/config.h

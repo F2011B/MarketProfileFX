@@ -19,13 +19,15 @@ RestHandler::~RestHandler()
     _http->deleteLater();
 }
 
-bool RestHandler::sendRequest(const QString &instrument, int count,
+bool RestHandler::sendRequest(const QString &instrument, const QDateTime &from,
                               const QString &granularity)
 {
-    qDebug() << "Sending request" << instrument << count << granularity;
+    qDebug() << "Sending request" << instrument << from << granularity;
 
-    QString url = QString(OANDA_URL).arg(instrument).arg(count).arg(granularity);
+    uint unixtime = from.toTime_t();
+    QString url = QString(OANDA_URL).arg(instrument).arg(unixtime).arg(granularity);
     QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "X-Accept-Datetime-Format: UNIX" );
     QSslConfiguration config = request.sslConfiguration();
     config.setProtocol(QSsl::TlsV1_0);
     request.setSslConfiguration(config);
