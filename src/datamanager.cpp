@@ -30,6 +30,7 @@ DataManager::DataManager()
         MainWindow::showDialog("Cannot create table into database", QMessageBox::Warning);
         _db.close();
     }
+    qDebug() << "Using db from" << dbPath;
 }
 
 QString DataManager::databasePath()
@@ -54,15 +55,15 @@ bool DataManager::createTable()
             bool exists = query.value(0).toBool();
             QString sql = query.value(1).toString();
             bool hasLayout = sql.contains(createTableSql, Qt::CaseInsensitive);
-            qDebug() << sql << ", has layout" << hasLayout;
+            qDebug() << TABLE_NAME << "has layout" << hasLayout;
             if (exists && hasLayout) {
                 //table exists and has the expected layout
-                qDebug() << "table already exists";
+                qDebug() << "table" << TABLE_NAME << "already exists";
                 return true;
             }
             if (!hasLayout) {
                 if (!query.exec("drop table " TABLE_NAME )) {
-                    qDebug() << "Cannot drop table " TABLE_NAME << _db.lastError().text();
+                    qDebug() << "Cannot drop table " TABLE_NAME << query.lastError().text();
                     return false;
                 }
             }
@@ -70,7 +71,7 @@ bool DataManager::createTable()
     }
     //create table for storing requests if table does not exist
     if (!query.exec(createTableSql)) {
-        qCritical() << "Cannot create table" TABLE_NAME << _db.lastError().text();
+        qCritical() << "Cannot create table" TABLE_NAME << query.lastError().text();
         return false;
     }
     return true;
@@ -83,11 +84,12 @@ bool DataManager::save(const QString &symb,
         qCritical() << "Db is closed";
         return false;
     }
+    qDebug() << "Saving" << data.size() << "rows for symb" << symb;
 
     //symb, dateTime, data
     QSqlQuery query(_db);
     if (!query.prepare("INSERT INTO " TABLE_NAME " (symb, dateTime, open, high, low, close, volume) VALUES (:symb, :dateTime, :open, :high, :low, :close, :volume)")) {
-        qCritical() << "Cannot prepare query for inserting row into database";
+        qCritical() << "Cannot prepare query for inserting row into database" << query.lastError().text();
         return false;
     }
     uint dateTime = 0;
@@ -115,7 +117,7 @@ bool DataManager::save(const QString &symb,
         close = value.close;
         volume = value.volume;
         if (!query.exec()) {
-            qCritical() << "Cannot exec insert query";
+            qCritical() << "Cannot exec insert query" << query.lastError().text();
             return false;
         }
     }
@@ -130,8 +132,8 @@ bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data>
     }
 
     QSqlQuery query(_db);
-    if (!query.exec("select dateTime, open, high, low, close, volume from " TABLE_NAME " limit where symb = '"+symb+"' ORDER BY dateTime ASC;")) {
-        qCritical() << "Cannot exec select query";
+    if (!query.exec("select dateTime, open, high, low, close, volume from " TABLE_NAME " where symb = '"+symb+"' order by dateTime ASC;")) {
+        qCritical() << "Cannot exec select query" << query.lastError().text();
         return false;
     }
     QDateTime dateTime;
@@ -146,17 +148,19 @@ bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data>
         value.volume = query.value(5).toInt();
         data[dateTime] = value;
     }
+    qDebug() << "Loaded" << data.size() << "rows for symb" << symb;
     return true;
 }
 
 bool DataManager::update()
 {
+    qDebug() << "Update db";
     const QDateTime now = QDateTime::currentDateTime();
     const QDateTime threshold = now.addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
-    const uint threhsholdSec = threshold.toTime_t();
+    const uint thresholdSec = threshold.toTime_t();
     QSqlQuery query(_db);
-    if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(threhsholdSec)+";")) {
-        qCritical() << "Cannot execute delete query";
+    if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
+        qCritical() << "Cannot execute delete query" << query.lastError().text();
         return false;
     }
     return true;
