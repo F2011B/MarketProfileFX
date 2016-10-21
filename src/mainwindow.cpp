@@ -72,7 +72,7 @@ void MainWindow::resizeEvent(QResizeEvent */*event*/)
 
 void MainWindow::onUpdate()
 {
-    qDebug() << "Sending request from " << _from;
+    qDebug() << "onUpdate: sending request from " << _from;
     bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
     if (!rc)
     {
@@ -83,6 +83,7 @@ void MainWindow::onUpdate()
 
 void MainWindow::onRestRequestFinished(const QVariant &content)
 {
+    qDebug() << "onRestRequestFinished";
     QJsonObject data;
     QString errorString;
     int type = content.type();
@@ -103,11 +104,11 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
 
     //parse candles array
     QJsonArray candles = data.value(CANDLES_NAME).toArray();
-    qDebug() << "Got" << candles.size() << "candles";
     if (candles.isEmpty()) {
         qDebug() << "No data received";
         return;
     }
+    qDebug() << "Got" << candles.size() << "candles";
     bool rc = false;
     QMap<QDateTime, MarketProfile::Data> inputData;
     for (int i = 0; i < candles.size(); ++i) {
@@ -121,11 +122,12 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
             continue;
         }
         if (!complete) {
-            qDebug() << "Found incomplete candle";
+            qDebug() << "Found incomplete candle at index" << i;
             continue;//TODO
         }
         inputData[dateTime] = profileData;
     }
+    qDebug() << "Number of complete candles" << inputData.size();
     displayData(inputData);
 
     //save data
