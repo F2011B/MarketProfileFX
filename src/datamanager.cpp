@@ -21,7 +21,7 @@ DataManager::DataManager()
     if (!_db.open()) {
         const QString msg = "Cannot open database: " + _db.lastError().text();
         MainWindow::showDialog(msg, QMessageBox::Warning);
-        qDebug() << msg;
+        qCritical() << msg;
         return;
     }
 
@@ -39,7 +39,7 @@ QString DataManager::databasePath()
     QFileInfo databaseFileInfo(QString("%1/%2").arg(dbFolder).arg(APP_NAME ".db"));
     const QString databasePath = databaseFileInfo.absoluteFilePath();
     if (!databaseFileInfo.exists()) {
-        qDebug() << "Database does not exist";
+        qCritical() << "Database does not exist";
     }
     return databasePath;
 }
@@ -55,19 +55,21 @@ bool DataManager::createTable()
             bool exists = query.value(0).toBool();
             QString sql = query.value(1).toString();
             bool hasLayout = sql.contains(createTableSql, Qt::CaseInsensitive);
-            qDebug() << TABLE_NAME << "has layout" << hasLayout;
             if (exists && hasLayout) {
                 //table exists and has the expected layout
-                qDebug() << "table" << TABLE_NAME << "already exists";
+                qDebug() << "Table" << TABLE_NAME << "already exists";
                 return true;
             }
+            qDebug() << "Table" << TABLE_NAME << "does not exist";
             if (!hasLayout) {
                 if (!query.exec("drop table " TABLE_NAME )) {
-                    qDebug() << "Cannot drop table " TABLE_NAME << query.lastError().text();
+                    qCritical() << "Cannot drop table " TABLE_NAME << query.lastError().text();
                     return false;
                 }
             }
         }
+    } else {
+        qCritical() << "Cannot execute query" << query.lastError().text();
     }
     //create table for storing requests if table does not exist
     if (!query.exec(createTableSql)) {
