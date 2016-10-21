@@ -104,11 +104,11 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
 
     //parse candles array
     QJsonArray candles = data.value(CANDLES_NAME).toArray();
-    qDebug() << "Got" << candles.size() << "candles";
     if (candles.isEmpty()) {
         qDebug() << "No data received";
         return;
     }
+    qDebug() << "Got" << candles.size() << "candles";
     bool rc = false;
     QMap<QDateTime, MarketProfile::Data> inputData;
     for (int i = 0; i < candles.size(); ++i) {
