@@ -159,11 +159,14 @@ bool DataManager::update()
     const QDateTime now = QDateTime::currentDateTime();
     const QDateTime threshold = now.addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
     const uint thresholdSec = threshold.toTime_t();
-    qDebug() << "Update db, rows to remove" << requestsToDeleteCount(thresholdSec);
-    QSqlQuery query(_db);
-    if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
-        qCritical() << "Cannot execute delete query" << query.lastError().text();
-        return false;
+    const int count = requestsToDeleteCount(thresholdSec);
+    qDebug() << "Update db, rows to remove" << count;
+    if (0 < count) {
+        QSqlQuery query(_db);
+        if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
+            qCritical() << "Cannot execute delete query" << query.lastError().text();
+            return false;
+        }
     }
     return true;
 }

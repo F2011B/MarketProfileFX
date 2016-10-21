@@ -72,7 +72,7 @@ void MainWindow::resizeEvent(QResizeEvent */*event*/)
 
 void MainWindow::onUpdate()
 {
-    qDebug() << "Sending request from " << _from;
+    qDebug() << "onUpdate: sending request from " << _from;
     bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
     if (!rc)
     {
@@ -83,6 +83,7 @@ void MainWindow::onUpdate()
 
 void MainWindow::onRestRequestFinished(const QVariant &content)
 {
+    qDebug() << "onRestRequestFinished";
     QJsonObject data;
     QString errorString;
     int type = content.type();
