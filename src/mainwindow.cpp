@@ -121,11 +121,12 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
             continue;
         }
         if (!complete) {
-            qDebug() << "Found incomplete candle";
+            qDebug() << "Found incomplete candle at index" << i;
             continue;//TODO
         }
         inputData[dateTime] = profileData;
     }
+    qDebug() << "Number of complete candles" << inputData.size();
     displayData(inputData);
 
     //save data

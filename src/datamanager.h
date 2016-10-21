@@ -13,6 +13,7 @@ public:
     bool save(const QString &symb, const QMap<QDateTime, MarketProfile::Data> &data);
     bool load(const QString &symb, QMap<QDateTime, MarketProfile::Data> &data);
 private:
+    int requestsToDeleteCount(uint thresholdSec);
     bool update();
     static QString databasePath();
     bool createTable();

@@ -92,30 +92,18 @@ bool DataManager::save(const QString &symb,
         qCritical() << "Cannot prepare query for inserting row into database" << query.lastError().text();
         return false;
     }
-    uint dateTime = 0;
-    double open = 0;
-    double high = 0;
-    double low = 0;
-    double close = 0;
-    int volume = 0;
-    query.bindValue(":symb", symb);
-    query.bindValue(":dateTime", dateTime);
-    query.bindValue(":open", open);
-    query.bindValue(":high", high);
-    query.bindValue(":low", low);
-    query.bindValue(":close", close);
-    query.bindValue(":volume", volume);
 
     QMapIterator<QDateTime, MarketProfile::Data> it(data);
+    query.bindValue(":symb", symb);
     while (it.hasNext()) {
         it.next();
-        dateTime = it.key().toTime_t();
         MarketProfile::Data value = it.value();
-        open = value.open;
-        high = value.high;
-        low = value.low;
-        close = value.close;
-        volume = value.volume;
+        query.bindValue(":dateTime", it.key().toTime_t());
+        query.bindValue(":open", value.open);
+        query.bindValue(":high", value.high);
+        query.bindValue(":low", value.low);
+        query.bindValue(":close", value.close);
+        query.bindValue(":volume", value.volume);
         if (!query.exec()) {
             qCritical() << "Cannot exec insert query" << query.lastError().text();
             return false;
@@ -152,12 +140,26 @@ bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data>
     return true;
 }
 
+int DataManager::requestsToDeleteCount(uint thresholdSec)
+{
+    int count = 0;
+    QSqlQuery query(_db);
+    if (!query.exec("select count(*) from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
+        qCritical() << "Cannot exec count query" << query.lastError().text();
+        return count;
+    }
+    if (query.next()) {
+        count = query.value(0).toInt();
+    }
+    return count;
+}
+
 bool DataManager::update()
 {
-    qDebug() << "Update db";
     const QDateTime now = QDateTime::currentDateTime();
     const QDateTime threshold = now.addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
     const uint thresholdSec = threshold.toTime_t();
+    qDebug() << "Update db, rows to remove" << requestsToDeleteCount(thresholdSec);
     QSqlQuery query(_db);
     if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
         qCritical() << "Cannot execute delete query" << query.lastError().text();
