@@ -39,7 +39,7 @@ QString DataManager::databasePath()
     QFileInfo databaseFileInfo(QString("%1/%2").arg(dbFolder).arg(APP_NAME ".db"));
     const QString databasePath = databaseFileInfo.absoluteFilePath();
     if (!databaseFileInfo.exists()) {
-        qCritical() << "Database does not exist";
+        qWarning() << "Database file does not exist";
     }
     return databasePath;
 }

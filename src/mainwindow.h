@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProgressDialog>
 #include "qcustomplot.h"
 #include "marketprofile.h"
 
@@ -28,6 +29,7 @@ private slots:
     void onUpdate();
     void computeFrom(const QDateTime &latest);
     void onRestRequestFinished(const QVariant &content);
+    void onCurrentIndexChanged(int index);
 private:
     bool parseCandle(QDateTime &dateTime, MarketProfile::Data &profileData,
                      bool &complete, const QJsonObject &item);
@@ -38,6 +40,8 @@ private:
     RestHandler *_restHandler;
     DataManager *_dataManager;
     QDateTime _from;
+    QProgressDialog _progress;
+    bool _loadOldData;
 };
 
 #endif // MAINWINDOW_H
