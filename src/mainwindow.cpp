@@ -83,13 +83,12 @@ void MainWindow::onUpdate()
 {
     if (_loadOldData) {
         _loadOldData = false;
-        qDebug() << "onUpdate: looking for old data if any";
+        qDebug() << "Loading old data from db if any";
         _profile->clearPlot();
         QMap<QDateTime, MarketProfile::Data> inputData;
         _dataManager->load(_symbolCombo->currentText(), inputData);
         displayData(inputData);
     }
-    qDebug() << "onUpdate: sending request from " << _from;
     bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
     if (rc) {
         _progress.setValue(0);
@@ -174,10 +173,10 @@ void MainWindow::computeFrom(const QDateTime &latest)
 {
     if (latest.isValid()) {
         _from = latest;
-        qDebug() << "Using old data";
+        qDebug() << "Start date for HTTP request is computed from old data" << _from;
     } else {
         _from = QDateTime::currentDateTime().addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
-        qDebug() << "No old data available";
+        qDebug() << "Start date for HTTP request uses default value" << _from;
     }
 }
 

@@ -86,7 +86,7 @@ bool DataManager::save(const QString &symb,
         qCritical() << "Db is closed";
         return false;
     }
-    qDebug() << "Saving" << data.size() << "rows for symb" << symb;
+    qDebug() << "Saving into db" << data.size() << "rows for symb" << symb;
 
     //symb, dateTime, data
     QSqlQuery query(_db);
@@ -138,7 +138,7 @@ bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data>
         value.volume = query.value(5).toInt();
         data[dateTime] = value;
     }
-    qDebug() << "Loaded" << data.size() << "rows for symb" << symb;
+    qDebug() << "Loaded from db" << data.size() << "rows for symb" << symb;
     return true;
 }
 
@@ -162,8 +162,8 @@ bool DataManager::update()
     const QDateTime threshold = now.addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
     const uint thresholdSec = threshold.toTime_t();
     const int count = requestsToDeleteCount(thresholdSec);
-    qDebug() << "Update db, rows to remove" << count;
     if (0 < count) {
+        qDebug() << "Updating db, rows to remove" << count;
         QSqlQuery query(_db);
         if (!query.exec("delete from " TABLE_NAME " where dateTime<="+QString::number(thresholdSec)+";")) {
             qCritical() << "Cannot execute delete query" << query.lastError().text();
