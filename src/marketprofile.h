@@ -40,6 +40,11 @@ public:
     void setMapResolution(int mapResolution) {
         _mapResolution = mapResolution;
     }
+    void clearPlot() {
+        QCustomPlot::clearItems();
+        clear();
+    }
+
 private slots:
     void updateItems();
     void onMouseWheel(QWheelEvent *event);

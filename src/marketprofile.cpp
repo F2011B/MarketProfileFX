@@ -144,8 +144,7 @@ bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &d
         return false;
     }
     if (!update) {
-        QCustomPlot::clearItems();
-        clear();
+        clearPlot();
     }
     QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
     QVector<double> upper;

@@ -9,7 +9,7 @@
 #include "config.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), _progress(this)
 {
     QWidget *centralWidget= new QWidget(this);
     QGridLayout *gridLayout= new QGridLayout(centralWidget);
@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *symbolLabel = new QLabel(tr("Symbol"), centralWidget);
     gridLayout->addWidget(symbolLabel, 0, 1, 1, 1, Qt::AlignRight);
     _symbolCombo = new QComboBox(centralWidget);
+    connect(_symbolCombo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &MainWindow::onCurrentIndexChanged);
     QStringList symbols;
     symbols << "EUR_USD" << "WTICO_USD" << "XAU_USD" << "DE30_EUR" << "SPX500_USD";
     _symbolCombo->addItems(symbols);
@@ -40,6 +42,16 @@ MainWindow::MainWindow(QWidget *parent)
     _profile->setLabelColor(255, 0, 255);
     gridLayout->addWidget(_profile, 1, 0, 1, 3);
 
+    //progress dialog
+    _progress.setLabelText(tr("Please wait ..."));
+    _progress.setCancelButton(NULL);
+    _progress.setRange(0, 0);
+    _progress.setMinimumDuration(500);
+    _progress.setAutoClose(true);
+    _progress.setAutoReset(true);
+    _progress.setWindowModality(Qt::WindowModal);
+    _progress.reset();//show progress only when needed
+
     //REST handler
     _restHandler = new RestHandler(this);
     connect(_restHandler, &RestHandler::finished, this,
@@ -47,9 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //Data manager
     _dataManager = new DataManager();
-    QMap<QDateTime, MarketProfile::Data> inputData;
-    _dataManager->load(_symbolCombo->currentText(), inputData);
-    displayData(inputData);//show data stored in database
+    _loadOldData = true;//make sure that old data is loaded first
     onUpdate();//send request for new data
 
     setCentralWidget(centralWidget);
@@ -72,10 +82,18 @@ void MainWindow::resizeEvent(QResizeEvent */*event*/)
 
 void MainWindow::onUpdate()
 {
-    qDebug() << "onUpdate: sending request from " << _from;
+    if (_loadOldData) {
+        _loadOldData = false;
+        qDebug() << "Loading old data from db if any";
+        _profile->clearPlot();
+        QMap<QDateTime, MarketProfile::Data> inputData;
+        _dataManager->load(_symbolCombo->currentText(), inputData);
+        displayData(inputData);
+    }
     bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
-    if (!rc)
-    {
+    if (rc) {
+        _progress.setVisible(true);
+    } else {
         qCritical() << "Cannot send request";
         showDialog(tr("Cannot send update request"));
     }
@@ -95,10 +113,12 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
         errorString = content.toString();
         qCritical() << "Error while retrieving data: " << errorString;
         showDialog(errorString);
+        _progress.reset();
         return;
     default:
         qCritical() << "Unknown variant type";
         showDialog(tr("Unknown variant type"));
+        _progress.reset();
         return;
     }
 
@@ -106,17 +126,17 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
     QJsonArray candles = data.value(CANDLES_NAME).toArray();
     if (candles.isEmpty()) {
         qDebug() << "No data received";
+        _progress.reset();
         return;
     }
     qDebug() << "Got" << candles.size() << "candles";
-    bool rc = false;
     QMap<QDateTime, MarketProfile::Data> inputData;
     for (int i = 0; i < candles.size(); ++i) {
         QJsonObject item = candles.at(i).toObject();
         QDateTime dateTime;
         MarketProfile::Data profileData;
         bool complete = false;
-        rc = parseCandle(dateTime, profileData, complete, item);
+        bool rc = parseCandle(dateTime, profileData, complete, item);
         if (!rc) {
             qWarning() << "Cannot parse candle" << i;
             continue;
@@ -129,6 +149,8 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
     }
     qDebug() << "Number of complete candles" << inputData.size();
     displayData(inputData);
+
+    _progress.reset();
 
     //save data
     _dataManager->save(_symbolCombo->currentText(), inputData);
@@ -152,10 +174,10 @@ void MainWindow::computeFrom(const QDateTime &latest)
 {
     if (latest.isValid()) {
         _from = latest;
-        qDebug() << "Using old data";
+        qDebug() << "Start date for HTTP request is computed from old data" << _from;
     } else {
         _from = QDateTime::currentDateTime().addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
-        qDebug() << "No old data available";
+        qDebug() << "Start date for HTTP request uses default value" << _from;
     }
 }
 
@@ -210,4 +232,10 @@ bool MainWindow::parseCandle(QDateTime &dateTime, MarketProfile::Data &profileDa
     }
     complete = val.toBool();
     return true;
+}
+
+void MainWindow::onCurrentIndexChanged(int index)
+{
+    qDebug() << "Symbol changed" << index;
+    _loadOldData = (0 <= index);
 }
