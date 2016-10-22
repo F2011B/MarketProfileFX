@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     _progress.setAutoClose(true);
     _progress.setAutoReset(true);
     _progress.setWindowModality(Qt::WindowModal);
+    _progress.reset();//show progress only when needed
 
     //REST handler
     _restHandler = new RestHandler(this);
@@ -91,7 +92,7 @@ void MainWindow::onUpdate()
     }
     bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
     if (rc) {
-        _progress.setValue(0);
+        _progress.setVisible(true);
     } else {
         qCritical() << "Cannot send request";
         showDialog(tr("Cannot send update request"));
