@@ -90,6 +90,10 @@ bool DataManager::save(const QString &symb,
         qCritical() << "Db is closed";
         return false;
     }
+    if (data.isEmpty()) {
+        qDebug() << "No data to save";
+        return true;
+    }
 
     QMutexLocker lock(&_dbMutex);
 
