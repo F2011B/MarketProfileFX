@@ -17,14 +17,16 @@ public:
         double close;
         int volume;
     };
+    typedef QMap<QDateTime, MarketProfile::Data> DataMap;
+
     explicit MarketProfile(QWidget *parent);
     bool setBackgroudColor(int red, int green, int blue);
     bool setLiteralColor(int red, int green, int blue);
     bool setXLabel(const QString &label);
     bool setYLabel(const QString &label);
     bool setLabelColor(int red, int green, int blue);
-    bool loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data, bool update = false);
-    bool updateTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data) {
+    bool loadTimeSeries(const DataMap &data, bool update = false);
+    bool updateTimeSeries(const DataMap &data) {
         return loadTimeSeries(data, true);
     }
     // all methods for indicator manipulation use indicator name for identification

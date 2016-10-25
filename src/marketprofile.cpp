@@ -9,6 +9,8 @@ MarketProfile::MarketProfile(QWidget *parent) :
   QCustomPlot(parent),
   _mapResolution(MAP_RESOLUTION)
 {
+    qRegisterMetaType<MarketProfile::DataMap>("MarketProfile::DataMap");
+
     clear();
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                     QCP::iSelectLegend | QCP::iSelectPlottables);
@@ -137,7 +139,7 @@ void MarketProfile::dumpLiteralMatrix()
     }
 }
 
-bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &data,
+bool MarketProfile::loadTimeSeries(const DataMap &data,
                                    bool update)
 {
     if (data.isEmpty()) {
@@ -146,7 +148,7 @@ bool MarketProfile::loadTimeSeries(const QMap<QDateTime, MarketProfile::Data> &d
     if (!update) {
         clearPlot();
     }
-    QMap<QDateTime, MarketProfile::Data>::const_iterator i = data.constBegin();
+    DataMap::const_iterator i = data.constBegin();
     QVector<double> upper;
     QVector<double> lower;
     QDate currentDate;

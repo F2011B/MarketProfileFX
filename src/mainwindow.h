@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QProgressDialog>
+#include <QThread>
 #include "qcustomplot.h"
 #include "marketprofile.h"
 
@@ -21,19 +22,21 @@ public:
     MarketProfile* marketProfile() {
         return _profile;
     }
-    static void showDialog(const QString &msg,
-                           QMessageBox::Icon icon = QMessageBox::Critical);
 protected:
     void resizeEvent(QResizeEvent *event);
 private slots:
+    void showDialog(const QString &msg,
+                           QMessageBox::Icon icon);
     void onUpdate();
     void computeFrom(const QDateTime &latest);
     void onRestRequestFinished(const QVariant &content);
     void onCurrentIndexChanged(int index);
+    void onLoadRequestFinished(const MarketProfile::DataMap &inputData);
 private:
+    void displayData(const MarketProfile::DataMap &inputData);
     bool parseCandle(QDateTime &dateTime, MarketProfile::Data &profileData,
                      bool &complete, const QJsonObject &item);
-    void displayData(QMap<QDateTime, MarketProfile::Data> &inputData);
+    void sendRestRequest();
     MarketProfile *_profile;
     QPushButton *_updateButton;
     QComboBox *_symbolCombo;
@@ -42,6 +45,7 @@ private:
     QDateTime _from;
     QProgressDialog _progress;
     bool _loadOldData;
+    QThread _dataManagerThread;
 };
 
 #endif // MAINWINDOW_H

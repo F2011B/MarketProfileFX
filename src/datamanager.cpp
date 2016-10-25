@@ -12,7 +12,7 @@ DataManager::DataManager()
     _db = QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME);
     if (!_db.isValid()) {
         const QString msg = "Sqlite driver not supported";
-        MainWindow::showDialog(msg, QMessageBox::Warning);
+        emit showDialog(msg, QMessageBox::Warning);
         qDebug() << msg;
         return;
     }
@@ -20,17 +20,21 @@ DataManager::DataManager()
     _db.setDatabaseName(dbPath);
     if (!_db.open()) {
         const QString msg = "Cannot open database: " + _db.lastError().text();
-        MainWindow::showDialog(msg, QMessageBox::Warning);
+        emit showDialog(msg, QMessageBox::Warning);
         qCritical() << msg;
         return;
     }
 
     //create required table if needed
     if (!createTable()) {
-        MainWindow::showDialog("Cannot create table into database", QMessageBox::Warning);
+        emit showDialog("Cannot create table into database", QMessageBox::Warning);
         _db.close();
     }
     qDebug() << "Using db from" << dbPath;
+
+    //connect available slots
+    connect(this, &DataManager::requestSave, this, &DataManager::save);
+    connect(this, &DataManager::requestLoad, this, &DataManager::load);
 }
 
 QString DataManager::databasePath()
@@ -80,12 +84,15 @@ bool DataManager::createTable()
 }
 
 bool DataManager::save(const QString &symb,
-                       const QMap<QDateTime, MarketProfile::Data> &data)
+                       const MarketProfile::DataMap &data)
 {
     if (!_db.isOpen()) {
         qCritical() << "Db is closed";
         return false;
     }
+
+    QMutexLocker lock(&_dbMutex);
+
     qDebug() << "Saving into db" << data.size() << "rows for symb" << symb;
 
     //symb, dateTime, data
@@ -114,21 +121,26 @@ bool DataManager::save(const QString &symb,
     return update();//remove old entries
 }
 
-bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data> &data)
+bool DataManager::load(const QString &symb)
 {
+    _loadedData.clear();
+
     if (!_db.isOpen()) {
         qCritical() << "Db is closed";
+        emit finishedLoad(_loadedData);
         return false;
     }
+
+    QMutexLocker lock(&_dbMutex);
 
     QSqlQuery query(_db);
     if (!query.exec("select dateTime, open, high, low, close, volume from " TABLE_NAME " where symb = '"+symb+"' order by dateTime ASC;")) {
         qCritical() << "Cannot exec select query" << query.lastError().text();
+        emit finishedLoad(_loadedData);
         return false;
     }
     QDateTime dateTime;
     MarketProfile::Data value;
-    data.clear();
     while (query.next()) {
         dateTime.setTime_t(query.value(0).toUInt());
         value.open = query.value(1).toDouble();
@@ -136,9 +148,10 @@ bool DataManager::load(const QString &symb, QMap<QDateTime, MarketProfile::Data>
         value.low = query.value(3).toDouble();
         value.close = query.value(4).toDouble();
         value.volume = query.value(5).toInt();
-        data[dateTime] = value;
+        _loadedData[dateTime] = value;
     }
-    qDebug() << "Loaded from db" << data.size() << "rows for symb" << symb;
+    qDebug() << "Loaded from db" << _loadedData.size() << "rows for symb" << symb;
+    emit finishedLoad(_loadedData);
     return true;
 }
 

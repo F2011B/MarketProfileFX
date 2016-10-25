@@ -59,6 +59,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     //Data manager
     _dataManager = new DataManager();
+    _dataManager->moveToThread(&_dataManagerThread);
+    connect(&_dataManagerThread, &QThread::finished, _dataManager, &QObject::deleteLater);
+    connect(_dataManager, &DataManager::finishedLoad, this, &MainWindow::onLoadRequestFinished,
+            Qt::BlockingQueuedConnection);
+    connect(_dataManager, &DataManager::showDialog, this, &MainWindow::showDialog);
+    _dataManagerThread.start();
     _loadOldData = true;//make sure that old data is loaded first
     onUpdate();//send request for new data
 
@@ -68,6 +74,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    _dataManagerThread.quit();
+    _dataManagerThread.wait();
     if (NULL != _symbolCombo) {
         const int currentIndex = _symbolCombo->currentIndex();
         SettingsManager::writeCurrentSymbolIndex(currentIndex);
@@ -86,16 +94,10 @@ void MainWindow::onUpdate()
         _loadOldData = false;
         qDebug() << "Loading old data from db if any";
         _profile->clearPlot();
-        QMap<QDateTime, MarketProfile::Data> inputData;
-        _dataManager->load(_symbolCombo->currentText(), inputData);
-        displayData(inputData);
-    }
-    bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
-    if (rc) {
-        _progress.setVisible(true);
+        emit _dataManager->requestLoad(_symbolCombo->currentText());
+        //http request is send once this request is finished
     } else {
-        qCritical() << "Cannot send request";
-        showDialog(tr("Cannot send update request"));
+        sendRestRequest();
     }
 }
 
@@ -112,12 +114,12 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
     case QMetaType::QString:
         errorString = content.toString();
         qCritical() << "Error while retrieving data: " << errorString;
-        showDialog(errorString);
+        showDialog(errorString, QMessageBox::Critical);
         _progress.reset();
         return;
     default:
         qCritical() << "Unknown variant type";
-        showDialog(tr("Unknown variant type"));
+        showDialog(tr("Unknown variant type"), QMessageBox::Critical);
         _progress.reset();
         return;
     }
@@ -130,7 +132,7 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
         return;
     }
     qDebug() << "Got" << candles.size() << "candles";
-    QMap<QDateTime, MarketProfile::Data> inputData;
+    MarketProfile::DataMap inputData;
     for (int i = 0; i < candles.size(); ++i) {
         QJsonObject item = candles.at(i).toObject();
         QDateTime dateTime;
@@ -153,16 +155,22 @@ void MainWindow::onRestRequestFinished(const QVariant &content)
     _progress.reset();
 
     //save data
-    _dataManager->save(_symbolCombo->currentText(), inputData);
+    emit _dataManager->requestSave(_symbolCombo->currentText(), inputData);
 }
 
-void MainWindow::displayData(QMap<QDateTime, MarketProfile::Data> &inputData)
+void MainWindow::onLoadRequestFinished(const MarketProfile::DataMap &inputData)
+{
+    displayData(inputData);
+    sendRestRequest();
+}
+
+void MainWindow::displayData(const MarketProfile::DataMap &inputData)
 {
     if (!inputData.isEmpty()) {
         bool rc = _profile->updateTimeSeries(inputData);
         if (!rc) {
             qCritical() << "Cannot load data";
-            showDialog(tr("Cannot load data"));
+            showDialog(tr("Cannot load data"), QMessageBox::Critical);
         }
         computeFrom(inputData.lastKey());
     } else {
@@ -183,7 +191,7 @@ void MainWindow::computeFrom(const QDateTime &latest)
 
 void MainWindow::showDialog(const QString &msg, QMessageBox::Icon icon)
 {
-    QMessageBox dlg(icon, APP_NAME, msg, QMessageBox::Ok);
+    QMessageBox dlg(icon, APP_NAME, msg, QMessageBox::Ok, this);
     dlg.exec();
 }
 
@@ -238,4 +246,15 @@ void MainWindow::onCurrentIndexChanged(int index)
 {
     qDebug() << "Symbol changed" << index;
     _loadOldData = (0 <= index);
+}
+
+void MainWindow::sendRestRequest()
+{
+    bool rc = _restHandler->sendRequest(_symbolCombo->currentText(), _from);
+    if (rc) {
+        _progress.setVisible(true);
+    } else {
+        qCritical() << "Cannot send request";
+        showDialog(tr("Cannot send update request"), QMessageBox::Critical);
+    }
 }
