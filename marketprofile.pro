@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets printsupport network sql
+QT       += core gui widgets printsupport network sql quick
 
 TARGET = marketprofile
 TEMPLATE = app
@@ -17,7 +17,8 @@ SOURCES += src/main.cpp\
         src/qcustomplot.cpp\
         src/resthandler.cpp\
         src/datamanager.cpp\
-        src/settingsmanager.cpp
+        src/settingsmanager.cpp \
+        src/candlestickchart.cpp
 
 HEADERS  += src/mainwindow.h\
         src/marketprofile.h\
@@ -25,4 +26,14 @@ HEADERS  += src/mainwindow.h\
         src/resthandler.h\
         src/datamanager.h\
         src/settingsmanager.h\
-        src/config.h
+        src/config.h \
+        src/candlestickchart.h
+
+//DISTFILES += \
+//    Menu.qml
+
+RESOURCES += \
+    resourcemenu.qrc
+
+DISTFILES += \
+    Menu.qml

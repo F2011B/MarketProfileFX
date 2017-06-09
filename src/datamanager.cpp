@@ -8,6 +8,9 @@
 
 DataManager::DataManager()
 {
+    _now = new QDateTime();
+    _threshold = new QDateTime();
+
     //open database
     _db = QSqlDatabase::addDatabase("QSQLITE", TABLE_NAME);
     if (!_db.isValid()) {
@@ -35,6 +38,7 @@ DataManager::DataManager()
     //connect available slots
     connect(this, &DataManager::requestSave, this, &DataManager::save);
     connect(this, &DataManager::requestLoad, this, &DataManager::load);
+    //connect(this, &DataManager::updateSymbol, this, &DataManager::updateSymbolByRest);
 }
 
 QString DataManager::databasePath()
@@ -125,24 +129,27 @@ bool DataManager::save(const QString &symb,
     return update();//remove old entries
 }
 
-bool DataManager::load(const QString &symb)
+bool DataManager::QueryCandles(QSqlQuery query, const QString &symb)
 {
-    _loadedData.clear();
-
-    if (!_db.isOpen()) {
-        qCritical() << "Db is closed";
-        emit finishedLoad(_loadedData);
-        return false;
-    }
-
-    QMutexLocker lock(&_dbMutex);
-
-    QSqlQuery query(_db);
     if (!query.exec("select dateTime, open, high, low, close, volume from " TABLE_NAME " where symb = '"+symb+"' order by dateTime ASC;")) {
         qCritical() << "Cannot exec select query" << query.lastError().text();
         emit finishedLoad(_loadedData);
         return false;
     }
+    return true;
+}
+
+QSqlQuery DataManager::ReadSymbolFromDB(const QString &symb)
+{
+    QMutexLocker lock(&_dbMutex);
+    QSqlQuery query(_db);
+    QueryCandles(query, symb);
+
+    return query;
+}
+
+void DataManager::convertToMarketProfileData(QSqlQuery query)
+{
     QDateTime dateTime;
     MarketProfile::Data value;
     while (query.next()) {
@@ -154,6 +161,28 @@ bool DataManager::load(const QString &symb)
         value.volume = query.value(5).toInt();
         _loadedData[dateTime] = value;
     }
+}
+
+bool DataManager::load(const QString &symb)
+{
+    _loadedData.clear();
+
+    if (!_db.isOpen()) {
+        qCritical() << "Db is closed";
+        emit finishedLoad(_loadedData);
+        return false;
+    }
+
+    QSqlQuery query = ReadSymbolFromDB(symb);
+
+    convertToMarketProfileData(query);
+
+    QDateTime startDate = getStartDateFromData();
+    QDateTime endDate = getEndDateFromData();
+
+    updateSymbolByRest(symb,startDate, endDate);
+
+
     qDebug() << "Loaded from db" << _loadedData.size() << "rows for symb" << symb;
     emit finishedLoad(_loadedData);
     return true;
@@ -173,11 +202,29 @@ int DataManager::requestsToDeleteCount(uint thresholdSec)
     return count;
 }
 
+QDateTime DataManager::getStartDateFromData()
+{
+//_loadedData
+    return *_now;
+}
+
+QDateTime DataManager::getEndDateFromData()
+{
+    return *_now;
+}
+
+void DataManager::updateDateBorders()
+{
+    _now->setDate(QDateTime::currentDateTime().date());
+    _now->setTime(QDateTime::currentDateTime().time());
+    _threshold->setDate(_now->addDays(-OBSOLETE_DATA_THRESHOLD_DAYS).date());
+    _threshold->setTime(_now->addDays(-OBSOLETE_DATA_THRESHOLD_DAYS).time());
+}
+
 bool DataManager::update()
 {
-    const QDateTime now = QDateTime::currentDateTime();
-    const QDateTime threshold = now.addDays(-OBSOLETE_DATA_THRESHOLD_DAYS);
-    const uint thresholdSec = threshold.toTime_t();
+    updateDateBorders();
+    const uint thresholdSec = _threshold->toTime_t();
     const int count = requestsToDeleteCount(thresholdSec);
     if (0 < count) {
         qDebug() << "Updating db, rows to remove" << count;
@@ -188,4 +235,11 @@ bool DataManager::update()
         }
     }
     return true;
+}
+
+void DataManager::updateSymbolByRest(const QString &symbol,const QDateTime &startDateTime, const QDateTime &endDateTime)
+{
+
+
+
 }

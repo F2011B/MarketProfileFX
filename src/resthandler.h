@@ -29,6 +29,9 @@ public:
     /*! Abort all pending requests.
      */
     void abortRequests();
+
+    bool setBearer(const QString &Bearer);
+
 signals:
     /*! Emitted when a request has been completed successfully
      * \param error non empty string if an error occured
@@ -43,6 +46,7 @@ private:
     };
     QMap<QNetworkReply*, ConnectionCache> _loadingMap;
     QMutex _loadingMapMutex;
+    QString _bearer;
 };
 
 #endif

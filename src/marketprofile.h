@@ -17,6 +17,7 @@ public:
         double close;
         int volume;
     };
+
     typedef QMap<QDateTime, MarketProfile::Data> DataMap;
 
     explicit MarketProfile(QWidget *parent);
@@ -25,17 +26,21 @@ public:
     bool setXLabel(const QString &label);
     bool setYLabel(const QString &label);
     bool setLabelColor(int red, int green, int blue);
+
+
     bool loadTimeSeries(const DataMap &data, bool update = false);
     bool updateTimeSeries(const DataMap &data) {
         return loadTimeSeries(data, true);
     }
+
+
     // all methods for indicator manipulation use indicator name for identification
     bool addIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
-    bool removeIndicator(const QString &indicatorName);
+    bool removeIndicator(const QString &indicatorName);    
     bool updateIndicator(const QString &indicatorName, const QMap<QDateTime, double> &position);
     bool showIndicator(const QString &indicatorName) {
         return updateIndicator(indicatorName, true);
-    }
+    }    
     bool hideIndicator(const QString &indicatorName) {
         return updateIndicator(indicatorName, false);
     }
@@ -52,6 +57,11 @@ private slots:
     void onMouseWheel(QWheelEvent *event);
 private:
     enum {MAP_RESOLUTION = 5};
+
+    void SetupChart();
+    void SetTicksToWhite();
+    void SetBackgroundToBlack();
+
     void process(const QVector<double> &upper, const QVector<double> &lower,
                     const QDate &currentDate, bool dump = false) {
         _tickVectorLabels.push_back(currentDate.toString("MMM d yyyy"));
@@ -73,7 +83,9 @@ private:
         char out = _currentLiteral;
         for (int n = 1; n <= index; ++n) {
             ++out;
-            if (out > 'Z') {
+            if (out == '[')
+                out='a';
+            if (out > 'z') {
                 out = 'A';
             }
         }
@@ -81,9 +93,12 @@ private:
     }
     void incrementCurrentLiteral() {
         ++_currentLiteral;
-        if (_currentLiteral > 'Z') {
+        if (_currentLiteral == '[')
+            _currentLiteral='a';
+        if (_currentLiteral > 'z') {
             _currentLiteral = 'A';
         }
+
     }
     bool isValidColor(int val) {
         return ((0 <= val) && (255 >= val));
@@ -125,6 +140,7 @@ private:
     QMap<double,Item> _items;
     int _mapResolution;
     int _oldHeight;
+    void setLiteralColor(QCPItemText *itemText, const QString &text);
 };
 
 #endif

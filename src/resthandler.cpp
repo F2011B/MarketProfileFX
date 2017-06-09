@@ -19,13 +19,25 @@ RestHandler::~RestHandler()
     _http->deleteLater();
 }
 
+bool RestHandler::setBearer(const QString &Bearer)
+{
+
+
+}
+
 bool RestHandler::sendRequest(const QString &instrument, const QDateTime &from,
                               const QString &granularity)
 {
     QString rfcTime = from.toString("yyyy-MM-ddThh:mm:ssZ");
     QString url = QString(OANDA_URL).arg(instrument).arg(rfcTime.replace(':', "%3A")).arg(granularity);
+
+    //QString url = QString(OANDA_HIST_START_COUNT).arg(instrument).arg(rfcTime.replace(':', "%3A")).arg(granularity).arg('5000');
+
+
     qDebug() << "Sending request" << url;
     QNetworkRequest request(url);
+   //request.setRawHeader("Authorization", "Bearer " + QString("").toLatin1());
+
     QSslConfiguration config = request.sslConfiguration();
     config.setProtocol(QSsl::TlsV1_0);
     request.setSslConfiguration(config);

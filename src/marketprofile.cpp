@@ -14,14 +14,43 @@ MarketProfile::MarketProfile(QWidget *parent) :
     clear();
     setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                     QCP::iSelectLegend | QCP::iSelectPlottables);
-    xAxis->setSubTickCount(0);
-    xAxis->setTickLength(0, 4);
-    xAxis->setTickLabelRotation(20);
-    xAxis->setAutoTicks(false);
-    xAxis->setAutoTickLabels(false);
+
+    SetupChart();
+
     _currentFont.setLetterSpacing(QFont::PercentageSpacing, 0);
     connect(this, &QCustomPlot::beforeReplot, this, &MarketProfile::updateItems);
     connect(this, &QCustomPlot::mouseWheel, this, &MarketProfile::onMouseWheel);
+}
+
+void MarketProfile::SetupChart()
+{
+    setLabelColor(255,255,255);
+    SetBackgroundToBlack();
+    SetTicksToWhite();
+}
+
+void MarketProfile::SetTicksToWhite()
+{        
+    xAxis->setTickLength(0, 4);
+    xAxis->setTickLabelRotation(20);    
+    xAxis->setTickPen(QPen(Qt::white, 1));
+    xAxis->setSubTickPen(QPen(Qt::white, 1));
+    xAxis->setTickLabelColor(Qt::white);
+    xAxis->setBasePen(QPen(QColor(255,0,0,255)));
+}
+
+void MarketProfile::SetBackgroundToBlack()
+{
+    QLinearGradient plotGradient;
+    plotGradient.setStart(0, 0);
+    plotGradient.setFinalStop(0, 350);
+    plotGradient.setColorAt(0, Qt::black );
+    plotGradient.setColorAt(1, Qt::black );
+    setBackground(plotGradient);
+
+    setLiteralColor(0, 255, 255);
+    setXLabel("Date of the trading");
+    setYLabel("Price");
 }
 
 //compute the height of the literal as the average daily range divided by _mapResolution
@@ -196,12 +225,24 @@ void MarketProfile::displayItem()
     _items[_xPos].currentYMin = _currentYMin;
     _currentFont.setPointSize(oldPointSize);
     _tickVector.push_back(_xPos);
-    xAxis->setTickVector(_tickVector);
-    xAxis->setTickVectorLabels(_tickVectorLabels);
+
+    //xAxis->setTickVector(_tickVector);
+    //xAxis->setTickVectorLabels(_tickVectorLabels);
     //new x position
     _xPos += nbChars*_letterHeight;
     xAxis->setRange(0, _xPos);
     _item.clear();
+}
+
+void MarketProfile::setLiteralColor(QCPItemText *itemText, const QString &text)
+{
+    QString A="A";
+    itemText->setColor(_literalColor);
+    if ( text.contains(A) )
+        itemText->setColor(QColor(255,255,0));
+
+    itemText->setText(text);
+
 }
 
 bool MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
@@ -211,9 +252,8 @@ bool MarketProfile::setupItemText(QCPItemText *itemText, const QString &text,
     itemText->position->setType(QCPItemPosition::ptPlotCoords);
     itemText->position->setCoords(x, y);
     itemText->setFont(_currentFont);
-    itemText->setColor(_literalColor);
-    itemText->setText(text);
-    return addItem(itemText);
+    setLiteralColor(itemText,text);    
+    return registerItem(itemText);
 }
 
 bool MarketProfile::setBackgroudColor(int red, int green, int blue)
@@ -258,6 +298,7 @@ bool MarketProfile::setYLabel(const QString &label)
     yAxis->setLabelColor(_labelColor);
     yAxis->setTickLabelColor(_labelColor);
     yAxis->setLabel(label);
+    yAxis->setBasePen(QPen(QColor(255,0,0,255)));
     replot();
     return true;
 }
